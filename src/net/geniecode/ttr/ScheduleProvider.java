@@ -197,6 +197,7 @@ public class ScheduleProvider extends ContentProvider {
 	public int delete(Uri url, String where, String[] whereArgs) {
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		int count;
+		@SuppressWarnings("unused")
 		long rowId = 0;
 		switch (sURLMatcher.match(url)) {
 		case SCHEDULES:

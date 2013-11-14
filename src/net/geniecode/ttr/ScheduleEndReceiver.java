@@ -15,6 +15,7 @@ public class ScheduleEndReceiver extends BroadcastReceiver {
 
 	private WifiManager wifiManager;
 
+	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
 	@Override
 	public void onReceive(Context context, Intent intent) {

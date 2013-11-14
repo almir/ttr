@@ -56,6 +56,7 @@ public class SetSchedule extends PreferenceActivity implements
 	private TimePickerDialog mEndTimePickerDialog;
 	private Schedule mOriginalSchedule;
 
+	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -259,6 +260,7 @@ public class SetSchedule extends PreferenceActivity implements
 		updateTime();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
 			Preference preference) {

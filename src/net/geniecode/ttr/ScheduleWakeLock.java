@@ -7,6 +7,7 @@ class ScheduleWakeLock {
 
 	private static PowerManager.WakeLock sCpuWakeLock;
 
+	@SuppressWarnings("deprecation")
 	static void acquireCpuWakeLock(Context context) {
 		if (sCpuWakeLock != null) {
 			return;
