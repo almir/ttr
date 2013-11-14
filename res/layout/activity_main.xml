@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/base_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/add_schedule"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/listPreferredItemHeight"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_height="match_parent"
+            android:layout_width="96dip"
+            android:layout_marginRight="8dip"
+            android:gravity="center"
+            android:scaleType="center"
+            android:src="@drawable/ic_menu_add"
+            android:contentDescription="@string/add_schedule" />
+
+        <TextView
+            android:duplicateParentState="true"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:gravity="center_vertical"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/add_schedule" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="16dip"
+        android:layout_marginRight="16dip"
+        android:background="@android:drawable/divider_horizontal_dark" />
+
+    <ListView
+        android:id="@+id/schedules_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginLeft="16dip"
+        android:layout_marginRight="16dip" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="16dip"
+        android:layout_marginRight="16dip"
+        android:background="@android:drawable/divider_horizontal_dark" />
+
+</LinearLayout>

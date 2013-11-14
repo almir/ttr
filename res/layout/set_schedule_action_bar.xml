@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:showDividers="end"
+        android:dividerPadding="12dip"
+        android:orientation="horizontal">
+
+        <TextView
+                android:id="@+id/save_menu_item"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:paddingRight="20dip"
+                android:paddingLeft="10dip"
+                android:drawablePadding="10dip"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/action_bar_button_text_color"
+                android:text="@string/done"
+                android:background="@drawable/activated_background_holo_dark"
+                android:drawableLeft="@drawable/ic_menu_done_holo_dark" />
+</LinearLayout>

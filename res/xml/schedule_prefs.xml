@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/set_schedule">
+    <CheckBoxPreference android:key="enabled"
+        android:persistent="false"
+        android:title="@string/enable_schedule" />
+    <Preference android:key="start_time"
+        android:persistent="false"
+        android:title="@string/starttime"/>
+    <Preference android:key="end_time"
+        android:persistent="false"
+        android:title="@string/endtime"/>
+    <net.geniecode.ttr.RepeatPreference
+        android:persistent="false"
+        android:key="setRepeat"
+        android:title="@string/schedule_repeat" />
+</PreferenceScreen>

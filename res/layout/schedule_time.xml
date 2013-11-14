@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <net.geniecode.ttr.DontPressWithParentLayout
+        android:id="@+id/indicator"
+        style="@style/schedule_list_left_column"
+        android:gravity="center"
+        android:orientation="vertical">
+        <CheckBox
+            android:id="@+id/clock_onoff"
+            android:focusable="false"
+            android:clickable="false"
+            android:duplicateParentState="true"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center" />
+    </net.geniecode.ttr.DontPressWithParentLayout>
+
+    <View
+        android:id="@+id/VerticalLine"
+        android:layout_width="1dip"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dip"
+        android:layout_marginTop="4dip"
+        android:background="#aaa"/>
+
+    <!-- A layout that displays the time.  Shows time, am/pm (if 12-hour),
+         and an optional line below, used for day/days of week -->
+    <net.geniecode.ttr.DigitalClock
+        android:id="@+id/digitalClock"
+        android:layout_width="0dip"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingLeft="16dip"
+        android:paddingRight="16dip">
+
+        <LinearLayout
+            android:id="@+id/time_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="true">
+
+            <net.geniecode.ttr.AndroidClockTextView 
+                android:id="@+id/startTimeDisplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="6dip"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                useClockTypeface="false"/>
+
+            <net.geniecode.ttr.AndroidClockTextView 
+                android:id="@+id/start_am_pm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:paddingRight="6dip"
+                android:textStyle="bold"
+                useClockTypeface="false"/>
+            
+            <TextView
+                android:id="@+id/txtTo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dash"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+            
+            <net.geniecode.ttr.AndroidClockTextView 
+                android:id="@+id/endTimeDisplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="6dip"
+                android:paddingRight="6dip"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                useClockTypeface="false"/>
+
+            <net.geniecode.ttr.AndroidClockTextView 
+                android:id="@+id/end_am_pm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:paddingRight="10dip"
+                android:textStyle="bold"
+                useClockTypeface="false"/>
+
+            <TextView android:id="@+id/label"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="8dip"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textStyle="bold"
+                android:gravity="right"
+                android:singleLine="true"/>
+
+        </LinearLayout>
+
+        <TextView android:id="@+id/daysOfWeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/time_wrapper"
+            android:paddingTop="2dip"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorTertiary"
+            />
+
+    </net.geniecode.ttr.DigitalClock>
+
+</LinearLayout>

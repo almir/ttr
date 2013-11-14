@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+           xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Time To Rest</string>
+    <string name="about">About</string>
+    <string name="default_label">Time To Rest</string>
+    <string name="touch_to_skip">Touch to skip</string>
+    <string name="title_not_rooted">Error: Device not rooted</string>
+    <string name="message_not_rooted">Your device hasn\'t been rooted.\nThis application will not work.</string>
+    <string name="add_schedule">Add Schedule</string>
+    <string name="dash">-</string>
+    <string name="done">Done</string>
+    <string name="set_schedule">Set schedule</string>
+    <string name="starttime">Start time</string>
+    <string name="endtime">End time</string>
+    <string name="schedule_repeat">Repeat</string>
+    <string name="label">Label</string>
+    <string name="day">"1 day"</string>
+    <string name="days">"<xliff:g id="days">%s</xliff:g> days"</string>
+    <string name="hour">1 hour</string>
+    <string name="hours"><xliff:g id="hours">%s</xliff:g> hours</string>
+    <string name="minute">"1 minute"</string>
+    <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
+    <string-array name="schedule_set">
+        <item>This schedule is set for less than 1 minute from now.</item>
+        <item>This schedule is set for <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> from now.</item>
+        <item>This schedule is set for <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> from now.</item>
+        <item>This schedule is set for <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> and <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> from now.</item>
+        <item>This schedule is set for <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> from now.</item>
+        <item>This schedule is set for <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> and <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> from now.</item>
+        <item>This schedule is set for <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> and <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> from now.</item>
+        <item>This schedule is set for <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, and <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> from now.</item>
+    </string-array>    
+    <string name="delete_schedule">Delete schedule</string>
+    <string name="delete_schedule_confirm">This schedule will be deleted.</string>
+    <string name="enable_schedule">Enable schedule</string>
+    <string name="disable_schedule">Disable schedule</string>
+    <string name="menu_edit_schedule">Edit schedule</string>
+    <string name="delete">Delete</string>
+    <string name="every_day">every day</string>
+    <string name="never">Never</string>
+    <string name="day_concat">", "</string>
+	<string name="title_saveorcancel">Save schedule</string>
+	<string name="message_saveorcancel">Do you want to save this schedule?</string>
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
+</resources>
