@@ -22,13 +22,10 @@ public class DigitalClock extends RelativeLayout {
 
 	private final static String M12 = "h:mm";
 
-	private Calendar mCalendarStart;
-	private Calendar mCalendarEnd;
+	private Calendar mCalendar;
 	private String mFormat;
-	private AndroidClockTextView mStartTimeDisplay;
-	private AmPm mStartAmPm;
-	private AndroidClockTextView mEndTimeDisplay;
-	private AmPm mEndAmPm;
+	private AndroidClockTextView mTimeDisplay;
+	private AmPm mAmPm;
 	private ContentObserver mFormatChangeObserver;
 	private boolean mLive = true;
 	private boolean mAttached;
@@ -41,8 +38,7 @@ public class DigitalClock extends RelativeLayout {
 			if (mLive
 					&& intent.getAction()
 							.equals(Intent.ACTION_TIMEZONE_CHANGED)) {
-				mCalendarStart = Calendar.getInstance();
-				mCalendarEnd = Calendar.getInstance();
+				mCalendar = Calendar.getInstance();
 			}
 			// Post a runnable to avoid blocking the broadcast.
 			mHandler.post(new Runnable() {
@@ -99,12 +95,9 @@ public class DigitalClock extends RelativeLayout {
 	protected void onFinishInflate() {
 		super.onFinishInflate();
 
-		mStartTimeDisplay = (AndroidClockTextView) findViewById(R.id.startTimeDisplay);
-		mEndTimeDisplay = (AndroidClockTextView) findViewById(R.id.endTimeDisplay);
-		mStartAmPm = new AmPm(this, R.id.start_am_pm);
-		mEndAmPm = new AmPm(this, R.id.end_am_pm);
-		mCalendarStart = Calendar.getInstance();
-		mCalendarEnd = Calendar.getInstance();
+		mTimeDisplay = (AndroidClockTextView) findViewById(R.id.timeDisplay);
+		mAmPm = new AmPm(this, R.id.am_pm);
+		mCalendar = Calendar.getInstance();
 
 		setDateFormat();
 	}
@@ -149,30 +142,24 @@ public class DigitalClock extends RelativeLayout {
 				mFormatChangeObserver);
 	}
 
-	void updateTime(Calendar c_start, Calendar c_end) {
-		mCalendarStart = c_start;
-		mCalendarEnd = c_end;
+	void updateTime(Calendar c) {
+		mCalendar = c;
 		updateTime();
 	}
 
 	private void updateTime() {
 		if (mLive) {
-			mCalendarStart.setTimeInMillis(System.currentTimeMillis());
-			mCalendarEnd.setTimeInMillis(System.currentTimeMillis());
+			mCalendar.setTimeInMillis(System.currentTimeMillis());
 		}
 
-		CharSequence newStartTime = DateFormat.format(mFormat, mCalendarStart);
-		CharSequence newEndTime = DateFormat.format(mFormat, mCalendarEnd);
-		mStartTimeDisplay.setText(newStartTime);
-		mEndTimeDisplay.setText(newEndTime);
-		mStartAmPm.setIsMorning(mCalendarStart.get(Calendar.AM_PM) == 0);
-		mEndAmPm.setIsMorning(mCalendarEnd.get(Calendar.AM_PM) == 0);
+		CharSequence newTime = DateFormat.format(mFormat, mCalendar);
+		mTimeDisplay.setText(newTime);
+		mAmPm.setIsMorning(mCalendar.get(Calendar.AM_PM) == 0);
 	}
 
 	private void setDateFormat() {
 		mFormat = Schedules.get24HourMode(getContext()) ? Schedules.M24 : M12;
-		mStartAmPm.setShowAmPm(mFormat == M12);
-		mEndAmPm.setShowAmPm(mFormat == M12);
+		mAmPm.setShowAmPm(mFormat == M12);
 	}
 
 	void setLive(boolean live) {

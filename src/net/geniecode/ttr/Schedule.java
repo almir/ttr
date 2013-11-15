@@ -36,13 +36,11 @@ public final class Schedule implements Parcelable {
 	public void writeToParcel(Parcel p, int flags) {
 		p.writeInt(id);
 		p.writeInt(enabled ? 1 : 0);
-		p.writeInt(start_hour);
-		p.writeInt(start_minutes);
-		p.writeInt(end_hour);
-		p.writeInt(end_minutes);
+		p.writeInt(hour);
+		p.writeInt(minutes);
 		p.writeInt(daysOfWeek.getCoded());
-		p.writeLong(start_time);
-		p.writeLong(end_time);
+		p.writeLong(time);
+		p.writeInt(aponoff ? 1 : 0);
 		p.writeString(label);
 	}
 
@@ -66,7 +64,7 @@ public final class Schedule implements Parcelable {
 		 * Type: INTEGER
 		 * </P>
 		 */
-		public static final String STARTHOUR = "start_hour";
+		public static final String HOUR = "hour";
 
 		/**
 		 * Minutes in localtime 0 - 59
@@ -74,23 +72,7 @@ public final class Schedule implements Parcelable {
 		 * Type: INTEGER
 		 * </P>
 		 */
-		public static final String STARTMINUTES = "start_minutes";
-
-		/**
-		 * Hour in 24-hour localtime 0 - 23.
-		 * <P>
-		 * Type: INTEGER
-		 * </P>
-		 */
-		public static final String ENDHOUR = "end_hour";
-
-		/**
-		 * Minutes in localtime 0 - 59
-		 * <P>
-		 * Type: INTEGER
-		 * </P>
-		 */
-		public static final String ENDMINUTES = "end_minutes";
+		public static final String MINUTES = "minutes";
 
 		/**
 		 * Days of week coded as integer
@@ -106,15 +88,7 @@ public final class Schedule implements Parcelable {
 		 * Type: INTEGER
 		 * </P>
 		 */
-		public static final String SCHEDULE_START_TIME = "schedulestarttime";
-
-		/**
-		 * Schedule end time in UTC milliseconds from the epoch.
-		 * <P>
-		 * Type: INTEGER
-		 * </P>
-		 */
-		public static final String SCHEDULE_END_TIME = "scheduleendtime";
+		public static final String SCHEDULE_TIME = "scheduletime";
 
 		/**
 		 * True if schedule is active
@@ -123,6 +97,14 @@ public final class Schedule implements Parcelable {
 		 * </P>
 		 */
 		public static final String ENABLED = "enabled";
+		
+		/**
+		 * True if airplane mode is set to on
+		 * <P>
+		 * Type: BOOLEAN
+		 * </P>
+		 */
+		public static final String APONOFF = "aponoff";
 
 		/**
 		 * Message to show when schedule triggers Note: not currently used
@@ -135,30 +117,27 @@ public final class Schedule implements Parcelable {
 		/**
 		 * The default sort order for this table
 		 */
-		public static final String DEFAULT_SORT_ORDER = STARTHOUR + ", "
-				+ STARTMINUTES + " ASC";
+		public static final String DEFAULT_SORT_ORDER = HOUR + ", "
+				+ MINUTES + " ASC";
 
 		// Used when filtering enabled schedules.
 		public static final String WHERE_ENABLED = ENABLED + "=1";
 
-		static final String[] SCHEDULE_QUERY_COLUMNS = { _ID, STARTHOUR,
-				STARTMINUTES, ENDHOUR, ENDMINUTES, DAYS_OF_WEEK,
-				SCHEDULE_START_TIME, SCHEDULE_END_TIME, ENABLED, MESSAGE };
+		static final String[] SCHEDULE_QUERY_COLUMNS = { _ID, HOUR,
+				MINUTES, DAYS_OF_WEEK, SCHEDULE_TIME, ENABLED, APONOFF, MESSAGE };
 
 		/**
 		 * These save calls to cursor.getColumnIndexOrThrow() THEY MUST BE KEPT
 		 * IN SYNC WITH ABOVE QUERY COLUMNS
 		 */
 		public static final int SCHEDULE_ID_INDEX = 0;
-		public static final int SCHEDULE_STARTHOUR_INDEX = 1;
-		public static final int SCHEDULE_STARTMINUTES_INDEX = 2;
-		public static final int SCHEDULE_ENDHOUR_INDEX = 3;
-		public static final int SCHEDULE_ENDMINUTES_INDEX = 4;
-		public static final int SCHEDULE_DAYS_OF_WEEK_INDEX = 5;
-		public static final int SCHEDULE_START_TIME_INDEX = 6;
-		public static final int SCHEDULE_END_TIME_INDEX = 7;
-		public static final int SCHEDULE_ENABLED_INDEX = 8;
-		public static final int SCHEDULE_MESSAGE_INDEX = 9;
+		public static final int SCHEDULE_HOUR_INDEX = 1;
+		public static final int SCHEDULE_MINUTES_INDEX = 2;
+		public static final int SCHEDULE_DAYS_OF_WEEK_INDEX = 3;
+		public static final int SCHEDULE_TIME_INDEX = 4;
+		public static final int SCHEDULE_ENABLED_INDEX = 5;
+		public static final int SCHEDULE_APONOFF_INDEX = 6;
+		public static final int SCHEDULE_MESSAGE_INDEX = 7;
 	}
 
 	// ////////////////////////////
@@ -168,39 +147,33 @@ public final class Schedule implements Parcelable {
 	// Public fields
 	public int id;
 	public boolean enabled;
-	public int start_hour;
-	public int start_minutes;
-	public int end_hour;
-	public int end_minutes;
+	public int hour;
+	public int minutes;
 	public DaysOfWeek daysOfWeek;
-	public long start_time;
-	public long end_time;
+	public long time;
+	public boolean aponoff;
 	public String label;
 
 	public Schedule(Cursor c) {
 		id = c.getInt(Columns.SCHEDULE_ID_INDEX);
 		enabled = c.getInt(Columns.SCHEDULE_ENABLED_INDEX) == 1;
-		start_hour = c.getInt(Columns.SCHEDULE_STARTHOUR_INDEX);
-		start_minutes = c.getInt(Columns.SCHEDULE_STARTMINUTES_INDEX);
-		end_hour = c.getInt(Columns.SCHEDULE_ENDHOUR_INDEX);
-		end_minutes = c.getInt(Columns.SCHEDULE_ENDMINUTES_INDEX);
+		hour = c.getInt(Columns.SCHEDULE_HOUR_INDEX);
+		minutes = c.getInt(Columns.SCHEDULE_MINUTES_INDEX);
 		daysOfWeek = new DaysOfWeek(
 				c.getInt(Columns.SCHEDULE_DAYS_OF_WEEK_INDEX));
-		start_time = c.getLong(Columns.SCHEDULE_START_TIME_INDEX);
-		end_time = c.getLong(Columns.SCHEDULE_END_TIME_INDEX);
+		time = c.getLong(Columns.SCHEDULE_TIME_INDEX);
+		aponoff = c.getInt(Columns.SCHEDULE_APONOFF_INDEX) == 1;
 		label = c.getString(Columns.SCHEDULE_MESSAGE_INDEX);
 	}
 
 	public Schedule(Parcel p) {
 		id = p.readInt();
 		enabled = p.readInt() == 1;
-		start_hour = p.readInt();
-		start_minutes = p.readInt();
-		end_hour = p.readInt();
-		end_minutes = p.readInt();
+		hour = p.readInt();
+		minutes = p.readInt();
 		daysOfWeek = new DaysOfWeek(p.readInt());
-		start_time = p.readLong();
-		end_time = p.readLong();
+		time = p.readLong();
+		aponoff = p.readInt() == 1;
 		label = p.readString();
 	}
 
@@ -209,10 +182,8 @@ public final class Schedule implements Parcelable {
 		id = -1;
 		Calendar c = Calendar.getInstance();
 		c.setTimeInMillis(System.currentTimeMillis());
-		start_hour = c.get(Calendar.HOUR_OF_DAY);
-		start_minutes = c.get(Calendar.MINUTE);
-		end_hour = c.get(Calendar.HOUR_OF_DAY);
-		end_minutes = c.get(Calendar.MINUTE);
+		hour = c.get(Calendar.HOUR_OF_DAY);
+		minutes = c.get(Calendar.MINUTE);
 		daysOfWeek = new DaysOfWeek(0);
 	}
 

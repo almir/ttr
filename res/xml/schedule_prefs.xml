@@ -3,15 +3,17 @@
     android:title="@string/set_schedule">
     <CheckBoxPreference android:key="enabled"
         android:persistent="false"
-        android:title="@string/enable_schedule" />
-    <Preference android:key="start_time"
+        android:title="@string/enable_schedule"/>
+    <Preference android:key="time"
         android:persistent="false"
-        android:title="@string/starttime"/>
-    <Preference android:key="end_time"
-        android:persistent="false"
-        android:title="@string/endtime"/>
+        android:title="@string/time"/>
     <net.geniecode.ttr.RepeatPreference
         android:persistent="false"
         android:key="setRepeat"
-        android:title="@string/schedule_repeat" />
+        android:title="@string/schedule_repeat"/>
+    <CheckBoxPreference android:key="aponoff"
+        android:persistent="false"
+        android:title="@string/aponoff"
+        android:summaryOn="@string/on"
+        android:summaryOff="@string/off"/>
 </PreferenceScreen>

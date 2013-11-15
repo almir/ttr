@@ -13,13 +13,12 @@ public class ScheduleInitReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
+		
+		// Remove the expired alarm after a boot.
+        if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+            Schedules.disableExpiredSchedules(context);
+        }
 
-		if (context.getContentResolver() == null) {
-			return;
-		}
-		if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
-			Schedules.disableExpiredSchedules(context);
-		}
-		Schedules.setNextSchedule(context);
+        Schedules.setNextSchedule(context);
 	}
 }

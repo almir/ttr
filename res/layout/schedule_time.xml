@@ -27,6 +27,14 @@
         android:layout_marginBottom="4dip"
         android:layout_marginTop="4dip"
         android:background="#aaa"/>
+    
+    <ImageView
+        android:id="@+id/mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_airplane_mode_on"/>
 
     <!-- A layout that displays the time.  Shows time, am/pm (if 12-hour),
          and an optional line below, used for day/days of week -->
@@ -48,7 +56,7 @@
             android:baselineAligned="true">
 
             <net.geniecode.ttr.AndroidClockTextView 
-                android:id="@+id/startTimeDisplay"
+                android:id="@+id/timeDisplay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingRight="6dip"
@@ -56,36 +64,11 @@
                 useClockTypeface="false"/>
 
             <net.geniecode.ttr.AndroidClockTextView 
-                android:id="@+id/start_am_pm"
+                android:id="@+id/am_pm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:paddingRight="6dip"
-                android:textStyle="bold"
-                useClockTypeface="false"/>
-            
-            <TextView
-                android:id="@+id/txtTo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/dash"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
-            
-            <net.geniecode.ttr.AndroidClockTextView 
-                android:id="@+id/endTimeDisplay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingLeft="6dip"
-                android:paddingRight="6dip"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                useClockTypeface="false"/>
-
-            <net.geniecode.ttr.AndroidClockTextView 
-                android:id="@+id/end_am_pm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingRight="10dip"
                 android:textStyle="bold"
                 useClockTypeface="false"/>
 

@@ -7,7 +7,6 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,7 +15,6 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
 import android.text.format.DateFormat;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,23 +35,18 @@ public class SetSchedule extends PreferenceActivity implements
 
 	private static final String KEY_CURRENT_SCHEDULE = "currentSchedule";
 	private static final String KEY_ORIGINAL_SCHEDULE = "originalSchedule";
-	private static final String KEY_START_TIME_PICKER_BUNDLE = "startTimePickerBundle";
-	private static final String KEY_END_TIME_PICKER_BUNDLE = "endTimePickerBundle";
+	private static final String KEY_TIME_PICKER_BUNDLE = "timePickerBundle";
 
 	private EditText mLabel;
 	private CheckBoxPreference mEnabledPref;
-	private Preference mStartTimePref;
-	private Preference mEndTimePref;
+	private CheckBoxPreference mAPModePref;
+	private Preference mTimePref;
 	private RepeatPreference mRepeatPref;
 
 	private int mId;
-	private int mStartHour;
-	private int mStartMinute;
-	private int mEndHour;
-	private int mEndMinute;
-	private int StartOrEnd = 0;
-	private TimePickerDialog mStartTimePickerDialog;
-	private TimePickerDialog mEndTimePickerDialog;
+	private int mHour;
+	private int mMinute;
+	private TimePickerDialog mTimePickerDialog;
 	private Schedule mOriginalSchedule;
 
 	@SuppressWarnings("deprecation")
@@ -78,8 +71,9 @@ public class SetSchedule extends PreferenceActivity implements
 		mLabel = label;
 		mEnabledPref = (CheckBoxPreference) findPreference("enabled");
 		mEnabledPref.setOnPreferenceChangeListener(this);
-		mStartTimePref = findPreference("start_time");
-		mEndTimePref = findPreference("end_time");
+		mAPModePref = (CheckBoxPreference) findPreference("aponoff");
+		mAPModePref.setOnPreferenceChangeListener(this);
+		mTimePref = findPreference("time");
 		mRepeatPref = (RepeatPreference) findPreference("setRepeat");
 		mRepeatPref.setOnPreferenceChangeListener(this);
 
@@ -151,7 +145,7 @@ public class SetSchedule extends PreferenceActivity implements
 				b.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						deleteAlarm();
+						deleteSchedule();
 					}
 				});
 			}
@@ -161,7 +155,7 @@ public class SetSchedule extends PreferenceActivity implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.menu_delete) {
-			deleteAlarm();
+			deleteSchedule();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -182,21 +176,13 @@ public class SetSchedule extends PreferenceActivity implements
 		super.onSaveInstanceState(outState);
 		outState.putParcelable(KEY_ORIGINAL_SCHEDULE, mOriginalSchedule);
 		outState.putParcelable(KEY_CURRENT_SCHEDULE, buildScheduleFromUi());
-		if (mStartTimePickerDialog != null) {
-			if (mStartTimePickerDialog.isShowing()) {
-				outState.putParcelable(KEY_START_TIME_PICKER_BUNDLE,
-						mStartTimePickerDialog.onSaveInstanceState());
-				mStartTimePickerDialog.dismiss();
+		if (mTimePickerDialog != null) {
+			if (mTimePickerDialog.isShowing()) {
+				outState.putParcelable(KEY_TIME_PICKER_BUNDLE,
+						mTimePickerDialog.onSaveInstanceState());
+				mTimePickerDialog.dismiss();
 			}
-			mStartTimePickerDialog = null;
-		}
-		if (mEndTimePickerDialog != null) {
-			if (mEndTimePickerDialog.isShowing()) {
-				outState.putParcelable(KEY_END_TIME_PICKER_BUNDLE,
-						mEndTimePickerDialog.onSaveInstanceState());
-				mEndTimePickerDialog.dismiss();
-			}
-			mEndTimePickerDialog = null;
+			mTimePickerDialog = null;
 		}
 	}
 
@@ -215,16 +201,10 @@ public class SetSchedule extends PreferenceActivity implements
 			updatePrefs(scheduleFromBundle);
 		}
 
-		Bundle bStart = state.getParcelable(KEY_START_TIME_PICKER_BUNDLE);
-		if (bStart != null) {
-			showStartTimePicker();
-			mStartTimePickerDialog.onRestoreInstanceState(bStart);
-		}
-
-		Bundle bEnd = state.getParcelable(KEY_END_TIME_PICKER_BUNDLE);
-		if (bEnd != null) {
-			showEndTimePicker();
-			mEndTimePickerDialog.onRestoreInstanceState(bEnd);
+		Bundle b = state.getParcelable(KEY_TIME_PICKER_BUNDLE);
+		if (b != null) {
+			showTimePicker();
+			mTimePickerDialog.onRestoreInstanceState(b);
 		}
 	}
 
@@ -251,11 +231,10 @@ public class SetSchedule extends PreferenceActivity implements
 	private void updatePrefs(Schedule schedule) {
 		mId = schedule.id;
 		mEnabledPref.setChecked(schedule.enabled);
+		mAPModePref.setChecked(schedule.aponoff);
 		mLabel.setText(schedule.label);
-		mStartHour = schedule.start_hour;
-		mStartMinute = schedule.start_minutes;
-		mEndHour = schedule.end_hour;
-		mEndMinute = schedule.end_minutes;
+		mHour = schedule.hour;
+		mMinute = schedule.minutes;
 		mRepeatPref.setDaysOfWeek(schedule.daysOfWeek);
 		updateTime();
 	}
@@ -264,12 +243,8 @@ public class SetSchedule extends PreferenceActivity implements
 	@Override
 	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
 			Preference preference) {
-		if (preference == mStartTimePref) {
-			StartOrEnd = 1;
-			showStartTimePicker();
-		} else if (preference == mEndTimePref) {
-			StartOrEnd = 2;
-			showEndTimePicker();
+		if (preference == mTimePref) {
+			showTimePicker();
 		}
 
 		return super.onPreferenceTreeClick(preferenceScreen, preference);
@@ -285,78 +260,40 @@ public class SetSchedule extends PreferenceActivity implements
 		}
 	}
 
-	private void showStartTimePicker() {
-		if (mStartTimePickerDialog != null) {
-			mStartTimePickerDialog = null;
+	private void showTimePicker() {
+		if (mTimePickerDialog != null) {
+			mTimePickerDialog = null;
 		}
 
-		mStartTimePickerDialog = new TimePickerDialog(this, this, mStartHour,
-				mStartMinute, DateFormat.is24HourFormat(this));
-		mStartTimePickerDialog.setOnCancelListener(this);
-		mStartTimePickerDialog.show();
-	}
-
-	private void showEndTimePicker() {
-		if (mEndTimePickerDialog != null) {
-			mEndTimePickerDialog = null;
-		}
-
-		mEndTimePickerDialog = new TimePickerDialog(this, this, mEndHour,
-				mEndMinute, DateFormat.is24HourFormat(this));
-		mEndTimePickerDialog.setOnCancelListener(this);
-		mEndTimePickerDialog.show();
+		mTimePickerDialog = new TimePickerDialog(this, this, mHour,
+				mMinute, DateFormat.is24HourFormat(this));
+		mTimePickerDialog.setOnCancelListener(this);
+		mTimePickerDialog.show();
 	}
 
 	@Override
 	public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
 		// onTimeSet is called when the user clicks "Set"
-		if (StartOrEnd == 1) {
-			mStartTimePickerDialog = null;
-			mStartHour = hourOfDay;
-			mStartMinute = minute;
-		} else if (StartOrEnd == 2) {
-			mEndTimePickerDialog = null;
-			mEndHour = hourOfDay;
-			mEndMinute = minute;
-		}
+		mTimePickerDialog = null;
+		mHour = hourOfDay;
+		mMinute = minute;
 
 		updateTime();
 		// If the time has been changed, enable the alarm.
 		mEnabledPref.setChecked(true);
 		saveSchedule(null);
-		StartOrEnd = 0;
 	}
 
 	@Override
 	public void onCancel(DialogInterface dialog) {
-		// mTimePickerDialog = null;
-		if (mStartTimePickerDialog != null) {
-			mStartTimePickerDialog = null;
-		}
-		if (mEndTimePickerDialog != null) {
-			mEndTimePickerDialog = null;
+		if (mTimePickerDialog != null) {
+			mTimePickerDialog = null;
 		}
 	}
 
 	private void updateTime() {
-		// mTimePref.setSummary(Schedules.formatTime(this, mStartHour,
-		// mStartMinute,
-		// mRepeatPref.getDaysOfWeek()));
-		if (StartOrEnd == 1)
-			mStartTimePref.setSummary(Schedules.formatTime(this, mStartHour,
-					mStartMinute, mRepeatPref.getDaysOfWeek()));
-
-		else if (StartOrEnd == 2) {
-			mEndTimePref.setSummary(Schedules.formatTime(this, mEndHour,
-					mEndMinute, mRepeatPref.getDaysOfWeek()));
-		}
-
-		else if (StartOrEnd == 0) {
-			mStartTimePref.setSummary(Schedules.formatTime(this, mStartHour,
-					mStartMinute, mRepeatPref.getDaysOfWeek()));
-			mEndTimePref.setSummary(Schedules.formatTime(this, mEndHour,
-					mEndMinute, mRepeatPref.getDaysOfWeek()));
-		}
+		mTimePref.setSummary(Schedules.formatTime(this, mHour,
+				mMinute, mRepeatPref.getDaysOfWeek()));
 	}
 
 	private long saveSchedule(Schedule schedule) {
@@ -381,33 +318,32 @@ public class SetSchedule extends PreferenceActivity implements
 		Schedule schedule = new Schedule();
 		schedule.id = mId;
 		schedule.enabled = mEnabledPref.isChecked();
-		schedule.start_hour = mStartHour;
-		schedule.start_minutes = mStartMinute;
-		schedule.end_hour = mEndHour;
-		schedule.end_minutes = mEndMinute;
+		schedule.aponoff = mAPModePref.isChecked();
+		schedule.hour = mHour;
+		schedule.minutes = mMinute;
 		schedule.daysOfWeek = mRepeatPref.getDaysOfWeek();
 		schedule.label = mLabel.getText().toString();
 		return schedule;
 	}
 
-	private void deleteAlarm() {
+	private void deleteSchedule() {
 		if (mId == -1) {
-			// Unedited, newly created alarms don't require confirmation
+			// Unedited, newly created schedules don't require confirmation
 			finish();
 		} else {
 			new AlertDialog.Builder(this)
-					.setTitle(getString(R.string.delete_schedule))
-					.setMessage(getString(R.string.delete_schedule_confirm))
-					.setPositiveButton(android.R.string.ok,
-							new DialogInterface.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface d, int w) {
-									Schedules.deleteSchedule(SetSchedule.this,
-											mId);
-									finish();
-								}
-							}).setNegativeButton(android.R.string.cancel, null)
-					.show();
+			.setTitle(getString(R.string.delete_schedule))
+			.setMessage(getString(R.string.delete_schedule_confirm))
+			.setPositiveButton(android.R.string.ok,
+					new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface d, int w) {
+							Schedules.deleteSchedule(SetSchedule.this,
+									mId);
+							finish();
+						}
+					}).setNegativeButton(android.R.string.cancel, null)
+			.show();
 		}
 	}
 
@@ -487,9 +423,10 @@ public class SetSchedule extends PreferenceActivity implements
 	
 	// Show dialog when back button is pressed
 	private void showSaveDialog() {
- 		AlertDialog aDialog = new AlertDialog.Builder(this)
+ 		new AlertDialog.Builder(this)
 		.setTitle(getString(R.string.title_saveorcancel))
 		.setMessage(getString(R.string.message_saveorcancel))
+		.setCancelable(false)
 		.setPositiveButton(R.string.yes,
 		new DialogInterface.OnClickListener() {
 			@Override
@@ -504,14 +441,6 @@ public class SetSchedule extends PreferenceActivity implements
 				revert();
 				finish();
 			}
-		}).create();
- 		aDialog.setOnKeyListener(new OnKeyListener() {
- 			@Override
- 			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
- 				// Disables the back button.
- 				return true;
- 			}
- 		});
- 		aDialog.show();
+		}).show();
  	}
 }

@@ -28,7 +28,7 @@ public class ScheduleProvider extends ContentProvider {
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 		private static final String DATABASE_NAME = "apscheduler.db";
-		private static final int DATABASE_VERSION = 5;
+		private static final int DATABASE_VERSION = 7;
 
 		public DatabaseHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -37,11 +37,9 @@ public class ScheduleProvider extends ContentProvider {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL("CREATE TABLE schedules (" + "_id INTEGER PRIMARY KEY,"
-					+ "start_hour INTEGER, " + "start_minutes INTEGER, "
-					+ "end_hour INTEGER, " + "end_minutes INTEGER, "
-					+ "daysofweek INTEGER, " + "schedulestarttime INTEGER, "
-					+ "scheduleendtime INTEGER, " + "enabled INTEGER, "
-					+ "message TEXT);");
+					+ "hour INTEGER, " + "minutes INTEGER, "
+					+ "daysofweek INTEGER, " + "scheduletime INTEGER, "
+					+ "enabled INTEGER, " + "aponoff INTEGER, " + "message TEXT);");
 
 			/**
 			 * Numeric values for days of week: Sunday = 64 Saturday = 32 Friday
@@ -50,11 +48,11 @@ public class ScheduleProvider extends ContentProvider {
 
 			// insert default schedules
 			String insertMe = "INSERT INTO schedules "
-					+ "(start_hour, start_minutes, end_hour, end_minutes, daysofweek, "
-					+ "schedulestarttime, scheduleendtime, enabled, message) "
+					+ "(hour, minutes, daysofweek, "
+					+ "scheduletime, enabled, aponoff, message) "
 					+ "VALUES ";
-			db.execSQL(insertMe + "(23, 0, 7, 0, 127, 0, 0, 0, '');");
-			db.execSQL(insertMe + "(11, 50, 12, 50, 16, 0, 0, 0, '');");
+			db.execSQL(insertMe + "(23, 0, 127, 0, 0, 1, 'Good Night');");
+			db.execSQL(insertMe + "(6, 0, 127, 0, 0, 0, 'Good Morning');");
 		}
 
 		@Override
@@ -154,29 +152,23 @@ public class ScheduleProvider extends ContentProvider {
 		else
 			values = new ContentValues();
 
-		if (!values.containsKey(Schedule.Columns.STARTHOUR))
-			values.put(Schedule.Columns.STARTHOUR, 0);
+		if (!values.containsKey(Schedule.Columns.HOUR))
+			values.put(Schedule.Columns.HOUR, 0);
 
-		if (!values.containsKey(Schedule.Columns.STARTMINUTES))
-			values.put(Schedule.Columns.STARTMINUTES, 0);
-
-		if (!values.containsKey(Schedule.Columns.ENDHOUR))
-			values.put(Schedule.Columns.ENDHOUR, 0);
-
-		if (!values.containsKey(Schedule.Columns.ENDMINUTES))
-			values.put(Schedule.Columns.ENDMINUTES, 0);
+		if (!values.containsKey(Schedule.Columns.MINUTES))
+			values.put(Schedule.Columns.MINUTES, 0);
 
 		if (!values.containsKey(Schedule.Columns.DAYS_OF_WEEK))
 			values.put(Schedule.Columns.DAYS_OF_WEEK, 0);
 
-		if (!values.containsKey(Schedule.Columns.SCHEDULE_START_TIME))
-			values.put(Schedule.Columns.SCHEDULE_START_TIME, 0);
-
-		if (!values.containsKey(Schedule.Columns.SCHEDULE_END_TIME))
-			values.put(Schedule.Columns.SCHEDULE_END_TIME, 0);
+		if (!values.containsKey(Schedule.Columns.SCHEDULE_TIME))
+			values.put(Schedule.Columns.SCHEDULE_TIME, 0);
 
 		if (!values.containsKey(Schedule.Columns.ENABLED))
 			values.put(Schedule.Columns.ENABLED, 0);
+		
+		if (!values.containsKey(Schedule.Columns.APONOFF))
+			values.put(Schedule.Columns.APONOFF, 0);
 
 		if (!values.containsKey(Schedule.Columns.MESSAGE))
 			values.put(Schedule.Columns.MESSAGE, "");

@@ -24,6 +24,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckBox;
 import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -51,12 +52,13 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private void updateSchedule(boolean enabled, Schedule schedule) {
 		Schedules.enableSchedule(this, schedule.id, enabled);
 		if (enabled) {
-			SetSchedule.popScheduleSetToast(this, schedule.start_hour,
-					schedule.start_minutes, schedule.daysOfWeek);
+			SetSchedule.popScheduleSetToast(this, schedule.hour,
+					schedule.minutes, schedule.daysOfWeek);
 		}
 	}
 
 	private class ScheduleTimeAdapter extends CursorAdapter {
+		@SuppressWarnings("deprecation")
 		public ScheduleTimeAdapter(Context context, Cursor cursor) {
 			super(context, cursor);
 		}
@@ -95,13 +97,10 @@ public class MainActivity extends Activity implements OnItemClickListener {
 					.findViewById(R.id.digitalClock);
 
 			// set the schedule text
-			final Calendar c_start = Calendar.getInstance();
-			final Calendar c_end = Calendar.getInstance();
-			c_start.set(Calendar.HOUR_OF_DAY, schedule.start_hour);
-			c_start.set(Calendar.MINUTE, schedule.start_minutes);
-			c_end.set(Calendar.HOUR_OF_DAY, schedule.end_hour);
-			c_end.set(Calendar.MINUTE, schedule.end_minutes);
-			digitalClock.updateTime(c_start, c_end);
+			final Calendar c = Calendar.getInstance();
+			c.set(Calendar.HOUR_OF_DAY, schedule.hour);
+			c.set(Calendar.MINUTE, schedule.minutes);
+			digitalClock.updateTime(c);
 
 			// Set the repeat text or leave it blank if it does not repeat.
 			TextView daysOfWeekView = (TextView) digitalClock
@@ -123,6 +122,22 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			} else {
 				labelView.setVisibility(View.GONE);
 			}
+			
+			// Show the appropriate clipart
+			ImageView imageView = (ImageView) view.findViewById(R.id.mode);
+			if (schedule.aponoff) {
+				imageView.setImageResource(R.drawable.ic_airplane_mode_on);
+			}
+			else if (!schedule.aponoff) {
+				imageView.setImageResource(R.drawable.ic_airplane_mode_off);
+			}
+			/**
+			else if (schedule.muteonoff) {
+				imageView.setImageResource(R.drawable.ic_volume_muted);
+			}
+			else if (!schedule.muteonoff) {
+				imageView.setImageResource(R.drawable.ic_volume_on);
+			} **/
 		}
 	};
 
@@ -159,8 +174,8 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			final Schedule schedule = new Schedule(c);
 			Schedules.enableSchedule(this, schedule.id, !schedule.enabled);
 			if (!schedule.enabled) {
-				SetSchedule.popScheduleSetToast(this, schedule.start_hour,
-						schedule.start_minutes, schedule.daysOfWeek);
+				SetSchedule.popScheduleSetToast(this, schedule.hour,
+						schedule.minutes, schedule.daysOfWeek);
 			}
 			return true;
 		}
@@ -196,7 +211,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			addSchedule.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					addNewAlarm();
+					addNewSchedule();
 				}
 			});
 			// Make the entire view selected when focused.
@@ -218,7 +233,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		}
 	}
 
-	private void addNewAlarm() {
+	private void addNewSchedule() {
 		startActivity(new Intent(this, SetSchedule.class));
 	}
 
@@ -243,22 +258,16 @@ public class MainActivity extends Activity implements OnItemClickListener {
 				info.position);
 		final Schedule schedule = new Schedule(c);
 
-		// Construct the Calendar to compute the start time.
-		final Calendar calstart = Calendar.getInstance();
-		calstart.set(Calendar.HOUR_OF_DAY, schedule.start_hour);
-		calstart.set(Calendar.MINUTE, schedule.start_minutes);
-		final String start_time = Schedules.formatTime(this, calstart);
-
-		// Construct the Calendar to compute the end time.
-		final Calendar calend = Calendar.getInstance();
-		calend.set(Calendar.HOUR_OF_DAY, schedule.end_hour);
-		calend.set(Calendar.MINUTE, schedule.end_minutes);
-		final String end_time = Schedules.formatTime(this, calend);
+		// Construct the Calendar to compute the time.
+		final Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, schedule.hour);
+		cal.set(Calendar.MINUTE, schedule.minutes);
+		final String time = Schedules.formatTime(this, cal);
 
 		// Inflate the custom view and set each TextView's text.
 		final View v = mFactory.inflate(R.layout.context_menu_header, null);
 		TextView textView = (TextView) v.findViewById(R.id.header_time);
-		textView.setText(start_time + " - " + end_time);
+		textView.setText(time);
 		textView = (TextView) v.findViewById(R.id.header_label);
 		textView.setText(schedule.label);
 
@@ -280,7 +289,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			about.show();
 			break;
 		case R.id.menu_add_schedule:
-			addNewAlarm();
+			addNewSchedule();
 			return true;
 		case android.R.id.home:
 			finish();
@@ -297,6 +306,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		return super.onCreateOptionsMenu(menu);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void onItemClick(AdapterView parent, View v, int pos, long id) {
 		final Cursor c = (Cursor) mSchedulesList.getAdapter().getItem(pos);

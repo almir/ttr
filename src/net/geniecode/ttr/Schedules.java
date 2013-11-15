@@ -1,7 +1,10 @@
 package net.geniecode.ttr;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
@@ -19,17 +22,10 @@ import android.text.format.DateFormat;
  */
 public class Schedules {
 
-	// This action triggers the ScheduleReceiver as well as the ScheduleKlaxon.
-	// It
-	// is a public action used in the manifest for receiving Schedule broadcasts
+	// This action triggers the ScheduleReceiver.
+	// It is a public action used in the manifest for receiving Schedule broadcasts
 	// from the alarm manager.
-	public static final String SCHEDULE_START_ACTION = "net.geniecode.ttr.SCHEDULE_START";
-
-	// This action triggers the ScheduleReceiver as well as the ScheduleKlaxon.
-	// It
-	// is a public action used in the manifest for receiving Schedule broadcasts
-	// from the alarm manager.
-	public static final String SCHEDULE_END_ACTION = "net.geniecode.ttr.SCHEDULE_END";
+	public static final String SCHEDULE_ACTION = "net.geniecode.ttr.SCHEDULE";
 
 	// This string is used when passing a Schedule object through an intent.
 	public static final String SCHEDULE_INTENT_EXTRA = "intent.extra.schedule";
@@ -54,7 +50,7 @@ public class Schedules {
 				Schedule.Columns.CONTENT_URI, values);
 		schedule.id = (int) ContentUris.parseId(uri);
 
-		long timeInMillis = calculateStartSchedule(schedule);
+		long timeInMillis = calculateSchedule(schedule);
 		setNextSchedule(context);
 		return timeInMillis;
 	}
@@ -95,26 +91,21 @@ public class Schedules {
 	}
 
 	private static ContentValues createContentValues(Schedule schedule) {
-		ContentValues values = new ContentValues(8);
+		ContentValues values = new ContentValues(7);
 		// Set the schedule_time value if this schedule does not repeat. This
-		// will be
-		// used later to disable expire schedules.
-		long start_time = 0;
-		long end_time = 0;
+		// will be used later to disable expire schedules.
+		long time = 0;
 		if (!schedule.daysOfWeek.isRepeatSet()) {
-			start_time = calculateStartSchedule(schedule);
-			end_time = calculateEndSchedule(schedule);
+			time = calculateSchedule(schedule);
 		}
 
 		values.put(Schedule.Columns.ENABLED, schedule.enabled ? 1 : 0);
-		values.put(Schedule.Columns.STARTHOUR, schedule.start_hour);
-		values.put(Schedule.Columns.STARTMINUTES, schedule.start_minutes);
-		values.put(Schedule.Columns.SCHEDULE_START_TIME, start_time);
-		values.put(Schedule.Columns.ENDHOUR, schedule.end_hour);
-		values.put(Schedule.Columns.ENDMINUTES, schedule.end_minutes);
-		values.put(Schedule.Columns.SCHEDULE_END_TIME, end_time);
+		values.put(Schedule.Columns.HOUR, schedule.hour);
+		values.put(Schedule.Columns.MINUTES, schedule.minutes);
+		values.put(Schedule.Columns.SCHEDULE_TIME, time);
 		values.put(Schedule.Columns.DAYS_OF_WEEK,
 				schedule.daysOfWeek.getCoded());
+		values.put(Schedule.Columns.APONOFF, schedule.aponoff);
 		values.put(Schedule.Columns.MESSAGE, schedule.label);
 
 		return values;
@@ -150,7 +141,7 @@ public class Schedules {
 		resolver.update(ContentUris.withAppendedId(
 				Schedule.Columns.CONTENT_URI, schedule.id), values, null, null);
 
-		long timeInMillis = calculateStartSchedule(schedule);
+		long timeInMillis = calculateSchedule(schedule);
 
 		setNextSchedule(context);
 
@@ -189,58 +180,66 @@ public class Schedules {
 		values.put(Schedule.Columns.ENABLED, enabled ? 1 : 0);
 
 		// If we are enabling the schedule, calculate schedule time since the
-		// time
-		// value in Schedule may be old.
+		// time value in Schedule may be old.
 		if (enabled) {
-			long start_time = 0;
-			long end_time = 0;
+			long time = 0;
 			if (!schedule.daysOfWeek.isRepeatSet()) {
-				start_time = calculateStartSchedule(schedule);
-				end_time = calculateEndSchedule(schedule);
+				time = calculateSchedule(schedule);
 			}
-			values.put(Schedule.Columns.SCHEDULE_START_TIME, start_time);
-			values.put(Schedule.Columns.SCHEDULE_END_TIME, end_time);
+			values.put(Schedule.Columns.SCHEDULE_TIME, time);
 		}
 
 		resolver.update(ContentUris.withAppendedId(
 				Schedule.Columns.CONTENT_URI, schedule.id), values, null, null);
 	}
-
+	
 	private static Schedule calculateNextSchedule(final Context context) {
-		Schedule schedule = null;
-		long minTime = Long.MAX_VALUE;
-		long now = System.currentTimeMillis();
-		Cursor cursor = getFilteredSchedulesCursor(context.getContentResolver());
-		if (cursor != null) {
-			if (cursor.moveToFirst()) {
-				do {
-					Schedule s = new Schedule(cursor);
-					// A time of 0 indicates this is a repeating schedule, so
-					// calculate the time to get the next alert.
-					if ((s.start_time == 0) && (s.end_time == 0)) {
-						s.start_time = calculateSchedule(s.start_hour,
-								s.start_minutes, s.daysOfWeek)
-								.getTimeInMillis();
-						s.end_time = calculateSchedule(s.end_hour,
-								s.end_minutes, s.daysOfWeek).getTimeInMillis();
-					} else if ((s.start_time < now) && (s.end_time < now)) {
-						// Expired schedule, disable it and move along.
-						enableScheduleInternal(context, s, false);
-						continue;
-					}
-					if (s.start_time < minTime) {
-						minTime = s.start_time;
-						schedule = s;
-					} else if (s.end_time < minTime) {
-						minTime = s.end_time;
-						schedule = s;
-					}
-				} while (cursor.moveToNext());
-			}
-			cursor.close();
-		}
-		return schedule;
-	}
+        long minTime = Long.MAX_VALUE;
+        long now = System.currentTimeMillis();
+        //final SharedPreferences prefs = context.getSharedPreferences(AlarmClock.PREFERENCES, 0);
+
+        Set<Schedule> schedules = new HashSet<Schedule>();
+
+        // We need to to build the list of schedules from the scheduled list.
+        // For a non-repeating schedule, when it goes of, it becomes disabled.
+
+        // Now add the scheduled schedules
+        final Cursor cursor = getFilteredSchedulesCursor(context.getContentResolver());
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    do {
+                        final Schedule a = new Schedule(cursor);
+                        schedules.add(a);
+                    } while (cursor.moveToNext());
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+
+        Schedule schedule = null;
+
+        for (Schedule s : schedules) {
+            // A time of 0 indicates this is a repeating schedule, so
+            // calculate the time to get the next alert.
+            if (s.time == 0) {
+                s.time = calculateSchedule(s);
+            }
+
+            if (s.time < now) {
+                // Expired schedule, disable it and move along.
+                enableScheduleInternal(context, s, false);
+                continue;
+            }
+            if (s.time < minTime) {
+                minTime = s.time;
+                schedule = s;
+            }
+        }
+
+        return schedule;
+    }
 
 	/**
 	 * Disables non-repeating schedules that have passed. Called at boot.
@@ -255,8 +254,7 @@ public class Schedules {
 					Schedule schedule = new Schedule(cur);
 					// A time of 0 means this schedule repeats. If the time is
 					// non-zero, check if the time is before now.
-					if ((schedule.start_time != 0 && schedule.start_time < now)
-							&& (schedule.end_time != 0 && schedule.end_time < now)) {
+					if (schedule.time != 0 && schedule.time < now) {
 						enableScheduleInternal(context, schedule, false);
 					}
 				} while (cur.moveToNext());
@@ -273,8 +271,7 @@ public class Schedules {
 	public static void setNextSchedule(final Context context) {
 		final Schedule schedule = calculateNextSchedule(context);
 		if (schedule != null) {
-			enableStartSchedule(context, schedule, schedule.start_time);
-			enableEndSchedule(context, schedule, schedule.end_time);
+			enableSchedule(context, schedule, schedule.time);
 		} else {
 			disableSchedule(context);
 		}
@@ -289,12 +286,13 @@ public class Schedules {
 	 * @param atTimeInMillis
 	 *            milliseconds since epoch
 	 */
-	private static void enableStartSchedule(Context context,
+	@SuppressLint("Recycle")
+	private static void enableSchedule(Context context,
 			final Schedule schedule, final long atTimeInMillis) {
 		AlarmManager am = (AlarmManager) context
 				.getSystemService(Context.ALARM_SERVICE);
 
-		Intent intent = new Intent(SCHEDULE_START_ACTION);
+		Intent intent = new Intent(SCHEDULE_ACTION);
 
 		// XXX: This is a slight hack to avoid an exception in the remote
 		// AlarmManagerService process. The AlarmManager adds extra data to
@@ -303,46 +301,7 @@ public class Schedules {
 		// ClassNotFoundException.
 		//
 		// To avoid this, we marshall the data ourselves and then parcel a plain
-		// byte[] array. The AlarmReceiver class knows to build the Schedule
-		// object from the byte[] array.
-		Parcel out = Parcel.obtain();
-		schedule.writeToParcel(out, 0);
-		out.setDataPosition(0);
-		intent.putExtra(SCHEDULE_RAW_DATA, out.marshall());
-
-		PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent,
-				PendingIntent.FLAG_CANCEL_CURRENT);
-
-		am.set(AlarmManager.RTC_WAKEUP, atTimeInMillis, sender);
-
-		Calendar c = Calendar.getInstance();
-		c.setTimeInMillis(atTimeInMillis);
-	}
-
-	/**
-	 * Sets schedule start in AlarmManger. This is what will actually launch the
-	 * schedule when the schedule triggers.
-	 * 
-	 * @param schedule
-	 *            Schedule.
-	 * @param atTimeInMillis
-	 *            milliseconds since epoch
-	 */
-	private static void enableEndSchedule(Context context,
-			final Schedule schedule, final long atTimeInMillis) {
-		AlarmManager am = (AlarmManager) context
-				.getSystemService(Context.ALARM_SERVICE);
-
-		Intent intent = new Intent(SCHEDULE_END_ACTION);
-
-		// XXX: This is a slight hack to avoid an exception in the remote
-		// AlarmManagerService process. The AlarmManager adds extra data to
-		// this Intent which causes it to inflate. Since the remote process
-		// does not know about the Schedule class, it throws a
-		// ClassNotFoundException.
-		//
-		// To avoid this, we marshall the data ourselves and then parcel a plain
-		// byte[] array. The AlarmReceiver class knows to build the Schedule
+		// byte[] array. The ScheduleReceiver class knows to build the Schedule
 		// object from the byte[] array.
 		Parcel out = Parcel.obtain();
 		schedule.writeToParcel(out, 0);
@@ -368,18 +327,13 @@ public class Schedules {
 		AlarmManager am = (AlarmManager) context
 				.getSystemService(Context.ALARM_SERVICE);
 		PendingIntent sender = PendingIntent.getBroadcast(context, 0,
-				new Intent(SCHEDULE_START_ACTION),
+				new Intent(SCHEDULE_ACTION),
 				PendingIntent.FLAG_CANCEL_CURRENT);
 		am.cancel(sender);
 	}
 
-	private static long calculateStartSchedule(Schedule schedule) {
-		return calculateSchedule(schedule.start_hour, schedule.start_minutes,
-				schedule.daysOfWeek).getTimeInMillis();
-	}
-
-	private static long calculateEndSchedule(Schedule schedule) {
-		return calculateSchedule(schedule.end_hour, schedule.end_minutes,
+	private static long calculateSchedule(Schedule schedule) {
+		return calculateSchedule(schedule.hour, schedule.minutes,
 				schedule.daysOfWeek).getTimeInMillis();
 	}
 

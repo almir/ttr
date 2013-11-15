@@ -1,12 +1,11 @@
 package net.geniecode.ttr;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 public class SplashActivity extends Activity {
@@ -15,6 +14,7 @@ public class SplashActivity extends Activity {
 	protected boolean _active = true;
 	protected int _splashTime = 3000;
 
+	@SuppressLint("InlinedApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -81,30 +81,18 @@ public class SplashActivity extends Activity {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				AlertDialog aDialog = new AlertDialog.Builder(
-						SplashActivity.this)
-						.setTitle(getString(R.string.title_not_rooted))
-						.setMessage(getString(R.string.message_not_rooted))
-						.setNeutralButton(android.R.string.ok,
-								new AlertDialog.OnClickListener() {
-									@Override
-									public void onClick(
-											final DialogInterface dialog,
-											final int which) {
-										// Exit the application.
-										finish();
-									}
-								}).create();
-				aDialog.setOnKeyListener(new OnKeyListener() {
+				new AlertDialog.Builder(SplashActivity.this)
+				.setTitle(getString(R.string.title_not_rooted))
+				.setMessage(getString(R.string.message_not_rooted))
+				.setCancelable(false)
+				.setNeutralButton(android.R.string.ok,
+				new AlertDialog.OnClickListener() {
 					@Override
-					public boolean onKey(DialogInterface dialog, int keyCode,
-							KeyEvent event) {
-						// Disables the back button.
-						return true;
+					public void onClick(DialogInterface d, int w) {
+						// Exit the application.
+						finish();
 					}
-
-				});
-				aDialog.show();
+				}).show();
 			}
 		});
 	}

@@ -8,13 +8,14 @@
     <string name="title_not_rooted">Error: Device not rooted</string>
     <string name="message_not_rooted">Your device hasn\'t been rooted.\nThis application will not work.</string>
     <string name="add_schedule">Add Schedule</string>
-    <string name="dash">-</string>
     <string name="done">Done</string>
     <string name="set_schedule">Set schedule</string>
-    <string name="starttime">Start time</string>
-    <string name="endtime">End time</string>
-    <string name="schedule_repeat">Repeat</string>
+    <string name="aponoff">Airplane mode</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="time">Time</string>
     <string name="label">Label</string>
+    <string name="schedule_repeat">Repeat</string>
     <string name="day">"1 day"</string>
     <string name="days">"<xliff:g id="days">%s</xliff:g> days"</string>
     <string name="hour">1 hour</string>
