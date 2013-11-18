@@ -263,7 +263,17 @@ public class SetSchedule extends PreferenceActivity implements
 		if (schedule.mode != null) {
 			mSetMode.setValue(schedule.mode);
 		} else {
-			mSetMode.setValue("1");
+			if (android.os.Build.VERSION.SDK_INT >= 17) {
+				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+	            Boolean mHasRoot = settings.getBoolean(ROOTED, true);
+	            if (mHasRoot) {
+	            	mSetMode.setValue("1");
+	            } else {
+	            	mSetMode.setValue("2");
+	            }
+			} else {
+				mSetMode.setValue("1");
+			}
 		}
 		showDynPrefs();
 		mAPModePref.setChecked(schedule.aponoff);
