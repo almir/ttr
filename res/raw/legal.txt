@@ -1,6 +1,8 @@
-Application for scheduling Airplane mode in order to preserve 
-battery and provide automated way of controlling this feature.<br><br>
-The scheduling function and the UI of this application are based 
-on the Android Alarm Clock code copyrighted by the Android 
-Open Source Project and licensed under the Apache License, 
+Application behaves as an airplane or silent mode scheduler, 
+enabling you to schedule time when you want your device to 
+automatically enable or disable airplane or silent mode.<br>
+You can choose whether you want your schedule to execute only 
+once or on specific days of week.<br>
+Once it's set just enable it and let the application do its thing.<br><br>
+This application has been opensourced and is licensed under the Apache License, 
 Version 2.0.

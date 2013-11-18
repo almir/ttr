@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2013 GenieCode
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.geniecode.ttr;
 
 import android.annotation.SuppressLint;
@@ -79,19 +95,25 @@ public class ScheduleReceiver extends BroadcastReceiver {
         // Get telephony service
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         
+        // Execute only for devices with versions of Android less than 4.2
         if (android.os.Build.VERSION.SDK_INT < 17) {
+        	// Get flight mode state
 			boolean isEnabled = Settings.System.getInt(
 					context.getContentResolver(),
 					Settings.System.AIRPLANE_MODE_ON, 0) == 1;
 			
-			mWifiManager = (WifiManager) context
-					.getSystemService(Context.WIFI_SERVICE);
+			// Get Wi-Fi service
+			mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 			
 			if ((schedule.aponoff) && (!isEnabled) && (schedule.mode.equals("1")) &&
 					(mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_IDLE)) {
+				// Enable flight mode
 				Settings.System.putInt(context.getContentResolver(),
 						Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
 				
+				// Get Wi-Fi state and disable that one too, just in case
+				// (On some devices it doesn't get disabled when the flight mode is
+				// turned on, so we do it here)
 				boolean isWifiEnabled = mWifiManager.isWifiEnabled();
 
 				SharedPreferences settings = context.getSharedPreferences(
@@ -114,9 +136,11 @@ public class ScheduleReceiver extends BroadcastReceiver {
 				context.sendBroadcast(relintent);
 			}
 			else if ((!schedule.aponoff) && (isEnabled) && (schedule.mode.equals("1"))) {
+				// Disable flight mode
 				Settings.System.putInt(context.getContentResolver(),
 						Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
 				
+				// Restore previously remembered Wi-Fi state
 				SharedPreferences settings = context.getSharedPreferences(
 						PREFS_NAME, 0);
 				Boolean WiFiState = settings.getBoolean(WIFI_STATE, true);
@@ -130,21 +154,29 @@ public class ScheduleReceiver extends BroadcastReceiver {
 				relintent.putExtra("state", !isEnabled);
 				context.sendBroadcast(relintent);
 			}
+			// Check whether there are ongoing phone calls, and if so
+			// show notification instead of just enabling the flight mode
 			else if (mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE) {
 				setNotification(context);
 			}
+		// Execute for devices with Android 4.2	or higher
 		} else {
+			// Get flight mode state
 			String result = Settings.Global.getString(
 					context.getContentResolver(),
 					Settings.Global.AIRPLANE_MODE_ON);
 			
 			if ((schedule.aponoff) && (result.equals("0")) && (schedule.mode.equals("1")) &&
 					(mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_IDLE)) {
+				// Acquire full device wake (needed for the phone state to be refreshed
+				// correctly) and enable flight mode
 				ScheduleWakeLock.acquireCpuWakeLock(context);
 				ScheduleIntentService.launchService(context);
 				ScheduleWakeLock.releaseCpuLock();
 			}
 			else if ((!schedule.aponoff) && (result.equals("1")) && (schedule.mode.equals("1"))) {
+				// Acquire full device wake (needed for the phone state to be refreshed
+				// correctly) and disable flight mode
 				ScheduleWakeLock.acquireCpuWakeLock(context);
 				ScheduleIntentService.launchService(context);
 				ScheduleWakeLock.releaseCpuLock();
@@ -154,8 +186,10 @@ public class ScheduleReceiver extends BroadcastReceiver {
 			}
 		}
         
+        // Get audio service
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         
+        // Get current ringer mode and set silent or normal mode accordingly
         switch (mAudioManager.getRingerMode()) {
         case AudioManager.RINGER_MODE_SILENT:
         	if ((!schedule.silentonoff) && (schedule.mode.equals("2"))) {
@@ -170,6 +204,7 @@ public class ScheduleReceiver extends BroadcastReceiver {
         }
     }
 
+	// Show notification if the phone call has been detected
 	@SuppressLint("NewApi")
 	private void setNotification(Context context) {
 		ScrollingText = context.getString(R.string.schedule_postponed_scroll);

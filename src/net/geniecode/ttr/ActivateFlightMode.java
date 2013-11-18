@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2013 GenieCode
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.geniecode.ttr;
 
 import android.app.Activity;
@@ -58,9 +74,13 @@ public class ActivateFlightMode extends Activity {
 			
 			mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 			
+			// Enable flight mode
 			Settings.System.putInt(getContentResolver(),
 					Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
 			
+			// Get Wi-Fi state and disable that one too, just in case
+			// (On some devices it doesn't get disabled when the flight mode is
+			// turned on, so we do it here)
 			boolean isWifiEnabled = mWifiManager.isWifiEnabled();
 
 			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -81,6 +101,8 @@ public class ActivateFlightMode extends Activity {
 			relintent.putExtra("state", !isEnabled);
 			sendBroadcast(relintent);
 		} else {
+			// Launch service to enable flight mode on Android 4.2
+			// and newer devices
 			ScheduleIntentService.launchService(getBaseContext());
 		}
 	}
