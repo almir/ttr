@@ -91,7 +91,7 @@ public class Schedules {
 	}
 
 	private static ContentValues createContentValues(Schedule schedule) {
-		ContentValues values = new ContentValues(7);
+		ContentValues values = new ContentValues(9);
 		// Set the schedule_time value if this schedule does not repeat. This
 		// will be used later to disable expire schedules.
 		long time = 0;
@@ -105,7 +105,9 @@ public class Schedules {
 		values.put(Schedule.Columns.SCHEDULE_TIME, time);
 		values.put(Schedule.Columns.DAYS_OF_WEEK,
 				schedule.daysOfWeek.getCoded());
+		values.put(Schedule.Columns.MODE, schedule.mode);
 		values.put(Schedule.Columns.APONOFF, schedule.aponoff);
+		values.put(Schedule.Columns.SILENTONOFF, schedule.silentonoff);
 		values.put(Schedule.Columns.MESSAGE, schedule.label);
 
 		return values;

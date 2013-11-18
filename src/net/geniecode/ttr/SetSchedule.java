@@ -6,11 +6,13 @@ import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
@@ -32,14 +34,20 @@ import android.widget.Toast;
 public class SetSchedule extends PreferenceActivity implements
 		Preference.OnPreferenceChangeListener,
 		TimePickerDialog.OnTimeSetListener, OnCancelListener {
+	
+	public static final String PREFS_NAME = "TTRPrefs";
+	public static final String ROOTED = "DeviceRooted";
 
 	private static final String KEY_CURRENT_SCHEDULE = "currentSchedule";
 	private static final String KEY_ORIGINAL_SCHEDULE = "originalSchedule";
 	private static final String KEY_TIME_PICKER_BUNDLE = "timePickerBundle";
-
+	
+	private PreferenceScreen mPreferenceSreen;
 	private EditText mLabel;
 	private CheckBoxPreference mEnabledPref;
+	private ListPreference mSetMode;
 	private CheckBoxPreference mAPModePref;
+	private CheckBoxPreference mSilentMode;
 	private Preference mTimePref;
 	private RepeatPreference mRepeatPref;
 
@@ -71,8 +79,12 @@ public class SetSchedule extends PreferenceActivity implements
 		mLabel = label;
 		mEnabledPref = (CheckBoxPreference) findPreference("enabled");
 		mEnabledPref.setOnPreferenceChangeListener(this);
+		mSetMode = (ListPreference) findPreference("setmode");
+		mSetMode.setOnPreferenceChangeListener(this);
 		mAPModePref = (CheckBoxPreference) findPreference("aponoff");
 		mAPModePref.setOnPreferenceChangeListener(this);
+		mSilentMode = (CheckBoxPreference) findPreference("silentonoff");
+		mSilentMode.setOnPreferenceChangeListener(this);
 		mTimePref = findPreference("time");
 		mRepeatPref = (RepeatPreference) findPreference("setRepeat");
 		mRepeatPref.setOnPreferenceChangeListener(this);
@@ -222,6 +234,7 @@ public class SetSchedule extends PreferenceActivity implements
 				if (p != mEnabledPref) {
 					mEnabledPref.setChecked(true);
 				}
+				showDynPrefs();				
 				saveSchedule(null);
 			}
 		});
@@ -231,12 +244,58 @@ public class SetSchedule extends PreferenceActivity implements
 	private void updatePrefs(Schedule schedule) {
 		mId = schedule.id;
 		mEnabledPref.setChecked(schedule.enabled);
+		if (schedule.mode != null) {
+			mSetMode.setValue(schedule.mode);
+		} else {
+			mSetMode.setValue("1");
+		}
+		showDynPrefs();
 		mAPModePref.setChecked(schedule.aponoff);
+		mSilentMode.setChecked(schedule.silentonoff);
 		mLabel.setText(schedule.label);
 		mHour = schedule.hour;
 		mMinute = schedule.minutes;
 		mRepeatPref.setDaysOfWeek(schedule.daysOfWeek);
 		updateTime();
+	}
+
+	@SuppressWarnings("deprecation")
+	private void showDynPrefs() {
+		// Handle changing mode dynamicaly
+		mPreferenceSreen = getPreferenceScreen();
+		if (android.os.Build.VERSION.SDK_INT >= 17) {
+			// Get shared preferences
+            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+            Boolean mHasRoot = settings.getBoolean(ROOTED, true);
+            if ((mHasRoot) && (mSetMode.getValue().equals("1"))) {
+					mPreferenceSreen.removePreference(mAPModePref);
+					mPreferenceSreen.removePreference(mSilentMode);
+					mPreferenceSreen.addPreference(mAPModePref);
+			}
+            else if ((mHasRoot) && (mSetMode.getValue().equals("2"))) {
+					mPreferenceSreen.removePreference(mAPModePref);
+					mPreferenceSreen.removePreference(mSilentMode);
+					mPreferenceSreen.addPreference(mSilentMode);
+			}
+            else if (!mHasRoot) {
+            	mPreferenceSreen.removePreference(mSetMode);
+            	mPreferenceSreen.removePreference(mAPModePref);
+				mPreferenceSreen.removePreference(mSilentMode);
+				mPreferenceSreen.addPreference(mSilentMode);
+            }
+		} else {
+			if (mSetMode.getValue().equals("1")) {
+				mPreferenceSreen.removePreference(mAPModePref);
+				mPreferenceSreen.removePreference(mSilentMode);
+				mPreferenceSreen.addPreference(mAPModePref);
+				
+			}
+			else if (mSetMode.getValue().equals("2")) {
+				mPreferenceSreen.removePreference(mAPModePref);
+				mPreferenceSreen.removePreference(mSilentMode);
+				mPreferenceSreen.addPreference(mSilentMode);
+			}
+		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -318,7 +377,9 @@ public class SetSchedule extends PreferenceActivity implements
 		Schedule schedule = new Schedule();
 		schedule.id = mId;
 		schedule.enabled = mEnabledPref.isChecked();
+		schedule.mode = mSetMode.getValue();
 		schedule.aponoff = mAPModePref.isChecked();
+		schedule.silentonoff = mSilentMode.isChecked();
 		schedule.hour = mHour;
 		schedule.minutes = mMinute;
 		schedule.daysOfWeek = mRepeatPref.getDaysOfWeek();

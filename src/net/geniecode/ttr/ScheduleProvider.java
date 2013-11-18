@@ -28,7 +28,7 @@ public class ScheduleProvider extends ContentProvider {
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 		private static final String DATABASE_NAME = "apscheduler.db";
-		private static final int DATABASE_VERSION = 7;
+		private static final int DATABASE_VERSION = 8;
 
 		public DatabaseHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -39,7 +39,8 @@ public class ScheduleProvider extends ContentProvider {
 			db.execSQL("CREATE TABLE schedules (" + "_id INTEGER PRIMARY KEY,"
 					+ "hour INTEGER, " + "minutes INTEGER, "
 					+ "daysofweek INTEGER, " + "scheduletime INTEGER, "
-					+ "enabled INTEGER, " + "aponoff INTEGER, " + "message TEXT);");
+					+ "enabled INTEGER, " + "mode TEXT, " + "aponoff INTEGER, "
+					+ "silentonoff INTEGER, " + "message TEXT);");
 
 			/**
 			 * Numeric values for days of week: Sunday = 64 Saturday = 32 Friday
@@ -49,10 +50,11 @@ public class ScheduleProvider extends ContentProvider {
 			// insert default schedules
 			String insertMe = "INSERT INTO schedules "
 					+ "(hour, minutes, daysofweek, "
-					+ "scheduletime, enabled, aponoff, message) "
+					+ "scheduletime, enabled, mode, "
+					+ "aponoff, silentonoff, message) "
 					+ "VALUES ";
-			db.execSQL(insertMe + "(23, 0, 127, 0, 0, 1, 'Good Night');");
-			db.execSQL(insertMe + "(6, 0, 127, 0, 0, 0, 'Good Morning');");
+			db.execSQL(insertMe + "(23, 0, 127, 0, 0, '2', 0, 1, 'Go to sleep');");
+			db.execSQL(insertMe + "(6, 0, 127, 0, 0, '2', 0, 0, 'Wake up');");
 		}
 
 		@Override
@@ -167,8 +169,14 @@ public class ScheduleProvider extends ContentProvider {
 		if (!values.containsKey(Schedule.Columns.ENABLED))
 			values.put(Schedule.Columns.ENABLED, 0);
 		
+		if (!values.containsKey(Schedule.Columns.MODE))
+			values.put(Schedule.Columns.MODE, "");
+		
 		if (!values.containsKey(Schedule.Columns.APONOFF))
 			values.put(Schedule.Columns.APONOFF, 0);
+		
+		if (!values.containsKey(Schedule.Columns.SILENTONOFF))
+			values.put(Schedule.Columns.SILENTONOFF, 0);
 
 		if (!values.containsKey(Schedule.Columns.MESSAGE))
 			values.put(Schedule.Columns.MESSAGE, "");

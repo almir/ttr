@@ -5,12 +5,14 @@
     <string name="about">About</string>
     <string name="default_label">Time To Rest</string>
     <string name="touch_to_skip">Touch to skip</string>
-    <string name="title_not_rooted">Error: Device not rooted</string>
-    <string name="message_not_rooted">Your device hasn\'t been rooted.\nThis application will not work.</string>
+    <string name="title_not_rooted">Device not rooted</string>
+    <string name="message_not_rooted">Your device hasn\'t been rooted.\nScheduling Airplane mode has been disabled.</string>
     <string name="add_schedule">Add Schedule</string>
     <string name="done">Done</string>
     <string name="set_schedule">Set schedule</string>
+    <string name="choose_mode">Mode to activate</string>
     <string name="aponoff">Airplane mode</string>
+    <string name="silentonoff">Silent mode</string>
     <string name="on">On</string>
     <string name="off">Off</string>
     <string name="time">Time</string>
@@ -45,4 +47,8 @@
 	<string name="message_saveorcancel">Do you want to save this schedule?</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
+	<string name="schedule_postponed_scroll">Schedule postponed</string>
+	<string name="schedule_postponed_notify">Schedule postponed due to detected call.</string>
+	<string name="title_activate">Activate Airplane mode</string>
+	<string name="message_activate">Activating Airplane mode has been postponed due to detected call.\nDo you want to activate it now?</string>
 </resources>

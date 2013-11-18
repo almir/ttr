@@ -40,7 +40,9 @@ public final class Schedule implements Parcelable {
 		p.writeInt(minutes);
 		p.writeInt(daysOfWeek.getCoded());
 		p.writeLong(time);
+		p.writeString(mode);
 		p.writeInt(aponoff ? 1 : 0);
+		p.writeInt(silentonoff ? 1 : 0);
 		p.writeString(label);
 	}
 
@@ -99,12 +101,28 @@ public final class Schedule implements Parcelable {
 		public static final String ENABLED = "enabled";
 		
 		/**
+		 * Chosen mode
+		 * <P>
+		 * Type: STRING
+		 * </P>
+		 */
+		public static final String MODE = "mode";
+		
+		/**
 		 * True if airplane mode is set to on
 		 * <P>
 		 * Type: BOOLEAN
 		 * </P>
 		 */
 		public static final String APONOFF = "aponoff";
+		
+		/**
+		 * True if silent mode is set to on
+		 * <P>
+		 * Type: BOOLEAN
+		 * </P>
+		 */
+		public static final String SILENTONOFF = "silentonoff";
 
 		/**
 		 * Message to show when schedule triggers Note: not currently used
@@ -124,7 +142,8 @@ public final class Schedule implements Parcelable {
 		public static final String WHERE_ENABLED = ENABLED + "=1";
 
 		static final String[] SCHEDULE_QUERY_COLUMNS = { _ID, HOUR,
-				MINUTES, DAYS_OF_WEEK, SCHEDULE_TIME, ENABLED, APONOFF, MESSAGE };
+				MINUTES, DAYS_OF_WEEK, SCHEDULE_TIME, ENABLED, MODE,
+				APONOFF, SILENTONOFF, MESSAGE };
 
 		/**
 		 * These save calls to cursor.getColumnIndexOrThrow() THEY MUST BE KEPT
@@ -136,8 +155,10 @@ public final class Schedule implements Parcelable {
 		public static final int SCHEDULE_DAYS_OF_WEEK_INDEX = 3;
 		public static final int SCHEDULE_TIME_INDEX = 4;
 		public static final int SCHEDULE_ENABLED_INDEX = 5;
-		public static final int SCHEDULE_APONOFF_INDEX = 6;
-		public static final int SCHEDULE_MESSAGE_INDEX = 7;
+		public static final int SCHEDULE_MODE_INDEX = 6;
+		public static final int SCHEDULE_APONOFF_INDEX = 7;
+		public static final int SCHEDULE_SILENTONOFF_INDEX = 8;
+		public static final int SCHEDULE_MESSAGE_INDEX = 9;
 	}
 
 	// ////////////////////////////
@@ -151,7 +172,9 @@ public final class Schedule implements Parcelable {
 	public int minutes;
 	public DaysOfWeek daysOfWeek;
 	public long time;
+	public String mode;
 	public boolean aponoff;
+	public boolean silentonoff;
 	public String label;
 
 	public Schedule(Cursor c) {
@@ -162,7 +185,9 @@ public final class Schedule implements Parcelable {
 		daysOfWeek = new DaysOfWeek(
 				c.getInt(Columns.SCHEDULE_DAYS_OF_WEEK_INDEX));
 		time = c.getLong(Columns.SCHEDULE_TIME_INDEX);
+		mode = c.getString(Columns.SCHEDULE_MODE_INDEX);
 		aponoff = c.getInt(Columns.SCHEDULE_APONOFF_INDEX) == 1;
+		silentonoff = c.getInt(Columns.SCHEDULE_SILENTONOFF_INDEX) == 1;
 		label = c.getString(Columns.SCHEDULE_MESSAGE_INDEX);
 	}
 
@@ -173,7 +198,9 @@ public final class Schedule implements Parcelable {
 		minutes = p.readInt();
 		daysOfWeek = new DaysOfWeek(p.readInt());
 		time = p.readLong();
+		mode = p.readString();
 		aponoff = p.readInt() == 1;
+		silentonoff = p.readInt() == 1;
 		label = p.readString();
 	}
 

@@ -125,19 +125,18 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			
 			// Show the appropriate clipart
 			ImageView imageView = (ImageView) view.findViewById(R.id.mode);
-			if (schedule.aponoff) {
+			if ((schedule.aponoff) && (schedule.mode.equals("1"))) {
 				imageView.setImageResource(R.drawable.ic_airplane_mode_on);
 			}
-			else if (!schedule.aponoff) {
+			else if ((!schedule.aponoff) && (schedule.mode.equals("1"))) {
 				imageView.setImageResource(R.drawable.ic_airplane_mode_off);
 			}
-			/**
-			else if (schedule.muteonoff) {
+			else if ((schedule.silentonoff) && (schedule.mode.equals("2"))) {
 				imageView.setImageResource(R.drawable.ic_volume_muted);
 			}
-			else if (!schedule.muteonoff) {
+			else if ((!schedule.silentonoff) && (schedule.mode.equals("2"))) {
 				imageView.setImageResource(R.drawable.ic_volume_on);
-			} **/
+			}
 		}
 	};
 

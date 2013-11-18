@@ -5,10 +5,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MotionEvent;
 
 public class SplashActivity extends Activity {
+	
+	public static final String PREFS_NAME = "TTRPrefs";
+	public static final String FIRSTRUN = "FirstRun";
+	public static final String ROOTED = "DeviceRooted";
 
 	// Class variables set for SplashScreen
 	protected boolean _active = true;
@@ -45,18 +50,55 @@ public class SplashActivity extends Activity {
 					if (android.os.Build.VERSION.SDK_INT >= 17) {
 						CheckRoot mCheckRootAccess = new CheckRoot();
 						mCheckRootAccess.isDeviceRooted();
-
-						if (!mCheckRootAccess.isDeviceRooted()) {
-							showNoRootDialog();
-						} else {
-							CommonServices.RunAsRoot("");
-
-							Intent intent = new Intent(SplashActivity.this,
+						
+						// Get shared preferences
+	                    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+	                    // Get shared preferences editor for writing later
+	                    SharedPreferences.Editor editor = settings.edit();
+	                    
+	                    // Chech whether this is our first run
+	                    Boolean mFirstRun = settings.getBoolean(FIRSTRUN, true);
+	                    if(mFirstRun) {
+	                    	if (!mCheckRootAccess.isDeviceRooted()) {
+	                    		// Write to shared peferences
+	                    		editor.putBoolean(FIRSTRUN, false);
+	            			    editor.putBoolean(ROOTED, false);
+	            			    editor.commit();
+	            			    
+	            			    // Show the dialog
+								showNoRootDialog();
+							} else {
+								// Write to shared peferences
+								editor.putBoolean(FIRSTRUN, false);
+	            			    editor.putBoolean(ROOTED, true);
+	            			    editor.commit();
+	            			    
+	            			    // Execute empty command as root only to gain access
+								CommonServices.RunAsRoot("");
+								
+								// Start the main activity
+								Intent intent = new Intent(SplashActivity.this,
+										MainActivity.class);
+								startActivityForResult(intent, 0);
+								finish();
+							}
+	                    } else {
+	                    	// We always check for root, write true if the device has been
+	                    	// rooted in the meantime
+	                    	if (mCheckRootAccess.isDeviceRooted()) {
+	                    		editor.putBoolean(ROOTED, true);
+	            			    editor.commit();
+	                    	}
+	                    	
+	                    	// Start the main activity
+	                    	Intent intent = new Intent(SplashActivity.this,
 									MainActivity.class);
 							startActivityForResult(intent, 0);
 							finish();
-						}
+	                    }
 					} else {
+						// We don't care about root for devices with Android less than 4.2
+						// let's just start the main activity
 						Intent intent = new Intent(SplashActivity.this,
 								MainActivity.class);
 						startActivityForResult(intent, 0);
@@ -76,7 +118,9 @@ public class SplashActivity extends Activity {
 		return true;
 	}
 
-	// Show dialog and quit if the device is not rooted
+	// Show the message stating that the device hasn't been rooted
+	// and that the airplane mode has been disabled, and then
+	// start the main activity
 	private void showNoRootDialog() {
 		runOnUiThread(new Runnable() {
 			@Override
@@ -89,7 +133,10 @@ public class SplashActivity extends Activity {
 				new AlertDialog.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface d, int w) {
-						// Exit the application.
+						// Start the main activity
+                    	Intent intent = new Intent(SplashActivity.this,
+								MainActivity.class);
+						startActivityForResult(intent, 0);
 						finish();
 					}
 				}).show();

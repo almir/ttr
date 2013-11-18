@@ -11,9 +11,19 @@
         android:persistent="false"
         android:key="setRepeat"
         android:title="@string/schedule_repeat"/>
+    <ListPreference android:key="setmode"
+            android:title="@string/choose_mode"
+            android:defaultValue="1"
+            android:entries="@array/listArray"
+            android:entryValues="@array/listValues"/>
     <CheckBoxPreference android:key="aponoff"
         android:persistent="false"
         android:title="@string/aponoff"
+        android:summaryOn="@string/on"
+        android:summaryOff="@string/off"/>
+    <CheckBoxPreference android:key="silentonoff"
+        android:persistent="false"
+        android:title="@string/silentonoff"
         android:summaryOn="@string/on"
         android:summaryOff="@string/off"/>
 </PreferenceScreen>

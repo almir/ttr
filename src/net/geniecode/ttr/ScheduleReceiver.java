@@ -1,22 +1,35 @@
 package net.geniecode.ttr;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.net.wifi.WifiManager;
 import android.os.Parcel;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 
 public class ScheduleReceiver extends BroadcastReceiver {
 
 	public static final String PREFS_NAME = "TTRPrefs";
 	public static final String WIFI_STATE = "WiFiState";
 
-	private WifiManager wifiManager;
+	private WifiManager mWifiManager;
+	private TelephonyManager mTelephonyManager;
+	private AudioManager mAudioManager;
+	private NotificationManager mNotificationManager;
+	private String ScrollingText;
+	private String NotificationText;
 	
-	/** If the alarm is older than STALE_WINDOW, ignore.  It
+	// Notification constant
+	public static final int NOTIFICATION_ID = 0;
+	
+	/** If the schedule is older than STALE_WINDOW, ignore.  It
     is probably the result of a time or timezone change */
 	private final static int STALE_WINDOW = 30 * 60 * 1000;
 	
@@ -48,7 +61,7 @@ public class ScheduleReceiver extends BroadcastReceiver {
             return;
         }
 
-        // Disable this alarm if it does not repeat.
+        // Disable this schedule if it does not repeat.
         if (!schedule.daysOfWeek.isRepeatSet()) {
             Schedules.enableSchedule(context, schedule.id, false);
         } else {
@@ -63,19 +76,23 @@ public class ScheduleReceiver extends BroadcastReceiver {
             return;
         }
         
+        // Get telephony service
+        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        
         if (android.os.Build.VERSION.SDK_INT < 17) {
 			boolean isEnabled = Settings.System.getInt(
 					context.getContentResolver(),
 					Settings.System.AIRPLANE_MODE_ON, 0) == 1;
 			
-			wifiManager = (WifiManager) context
+			mWifiManager = (WifiManager) context
 					.getSystemService(Context.WIFI_SERVICE);
 			
-			if ((schedule.aponoff) && (!isEnabled)) {
+			if ((schedule.aponoff) && (!isEnabled) && (schedule.mode.equals("1")) &&
+					(mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_IDLE)) {
 				Settings.System.putInt(context.getContentResolver(),
 						Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
 				
-				boolean isWifiEnabled = wifiManager.isWifiEnabled();
+				boolean isWifiEnabled = mWifiManager.isWifiEnabled();
 
 				SharedPreferences settings = context.getSharedPreferences(
 						PREFS_NAME, 0);
@@ -84,14 +101,19 @@ public class ScheduleReceiver extends BroadcastReceiver {
 					SharedPreferences.Editor editor = settings.edit();
 					editor.putBoolean(WIFI_STATE, isWifiEnabled);
 					editor.commit();
-					wifiManager.setWifiEnabled(false);
+					mWifiManager.setWifiEnabled(false);
 				} else {
 					SharedPreferences.Editor editor = settings.edit();
 					editor.putBoolean(WIFI_STATE, isWifiEnabled);
 					editor.commit();
 				}
+				
+				// Post an intent to reload
+				Intent relintent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+				relintent.putExtra("state", !isEnabled);
+				context.sendBroadcast(relintent);
 			}
-			else if ((!schedule.aponoff) && (isEnabled)) {
+			else if ((!schedule.aponoff) && (isEnabled) && (schedule.mode.equals("1"))) {
 				Settings.System.putInt(context.getContentResolver(),
 						Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
 				
@@ -100,29 +122,76 @@ public class ScheduleReceiver extends BroadcastReceiver {
 				Boolean WiFiState = settings.getBoolean(WIFI_STATE, true);
 
 				if (WiFiState) {
-					wifiManager.setWifiEnabled(true);
+					mWifiManager.setWifiEnabled(true);
 				}
+				
+				// Post an intent to reload
+				Intent relintent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+				relintent.putExtra("state", !isEnabled);
+				context.sendBroadcast(relintent);
 			}
-
-			// Post an intent to reload
-			Intent relintent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-			relintent.putExtra("state", !isEnabled);
-			context.sendBroadcast(relintent);			
+			else if (mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE) {
+				setNotification(context);
+			}
 		} else {
 			String result = Settings.Global.getString(
 					context.getContentResolver(),
 					Settings.Global.AIRPLANE_MODE_ON);
 			
-			if ((schedule.aponoff) && (result.equals("0"))) {
+			if ((schedule.aponoff) && (result.equals("0")) && (schedule.mode.equals("1")) &&
+					(mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_IDLE)) {
 				ScheduleWakeLock.acquireCpuWakeLock(context);
 				ScheduleIntentService.launchService(context);
 				ScheduleWakeLock.releaseCpuLock();
 			}
-			else if ((!schedule.aponoff) && (result.equals("1"))) {
+			else if ((!schedule.aponoff) && (result.equals("1")) && (schedule.mode.equals("1"))) {
 				ScheduleWakeLock.acquireCpuWakeLock(context);
 				ScheduleIntentService.launchService(context);
 				ScheduleWakeLock.releaseCpuLock();
+			}
+			else if (mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE) {
+				setNotification(context);
 			}
 		}
+        
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        
+        switch (mAudioManager.getRingerMode()) {
+        case AudioManager.RINGER_MODE_SILENT:
+        	if ((!schedule.silentonoff) && (schedule.mode.equals("2"))) {
+        		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            }
+        	break;
+        case AudioManager.RINGER_MODE_NORMAL:
+        	if ((schedule.silentonoff) && (schedule.mode.equals("2"))) {
+        		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+            }
+        	break;
+        }
     }
+
+	@SuppressLint("NewApi")
+	private void setNotification(Context context) {
+		ScrollingText = context.getString(R.string.schedule_postponed_scroll);
+    	NotificationText = context.getString(R.string.schedule_postponed_notify);
+    	
+		// Trigger a notification that, when clicked, will activate airplane mode
+		mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
+        		new Intent(context, ActivateFlightMode.class), PendingIntent.FLAG_CANCEL_CURRENT);
+		
+		Notification.Builder builder = new Notification.Builder(context);
+		builder.setContentIntent(contentIntent)
+			.setSmallIcon(R.drawable.ic_launcher)
+			.setTicker(ScrollingText)
+			.setWhen(System.currentTimeMillis())
+			.setAutoCancel(true)
+			.setOnlyAlertOnce(true)
+			.setDefaults(Notification.DEFAULT_LIGHTS)
+			.setContentTitle(context.getText(R.string.app_name))
+			.setContentText(NotificationText);
+		Notification notification = builder.build();
+		 
+		 mNotificationManager.notify(NOTIFICATION_ID, notification);
+	}
 }
