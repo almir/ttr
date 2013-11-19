@@ -201,6 +201,16 @@ public class ScheduleReceiver extends BroadcastReceiver {
         		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
             }
         	break;
+        case AudioManager.RINGER_MODE_VIBRATE:
+        	// If the phone is set to vibrate let's make it completely silent
+        	if ((schedule.silentonoff) && (schedule.mode.equals("2"))) {
+        		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+            }
+        	// or restore the regular sounds on it if that's scheduled
+        	else if ((!schedule.silentonoff) && (schedule.mode.equals("2"))) {
+        		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            }
+        	break;
         }
     }
 
