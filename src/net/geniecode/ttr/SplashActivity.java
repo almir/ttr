@@ -89,7 +89,7 @@ public class SplashActivity extends Activity {
 	            			    editor.putBoolean(ROOTED, true);
 	            			    editor.commit();
 	            			    
-	            			    // Execute empty command as root only to gain access
+	            			    // Execute empty command as root just to gain access
 								CommonServices.RunAsRoot("");
 								
 								// Start the main activity
@@ -100,9 +100,14 @@ public class SplashActivity extends Activity {
 							}
 	                    } else {
 	                    	// We always check for root, write true if the device has been
-	                    	// rooted in the meantime
+	                    	// rooted in the meantime, or false if it has lost root somehow
 	                    	if (mCheckRootAccess.isDeviceRooted()) {
 	                    		editor.putBoolean(ROOTED, true);
+	            			    editor.commit();
+	            			    // Execute empty command as root just to gain access
+								CommonServices.RunAsRoot("");
+	                    	} else {
+	                    		editor.putBoolean(ROOTED, false);
 	            			    editor.commit();
 	                    	}
 	                    	
