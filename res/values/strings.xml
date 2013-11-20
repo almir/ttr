@@ -15,9 +15,9 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
            xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">Time To Rest</string>
+    <string name="app_name">Do Not Interrupt</string>
     <string name="about">About</string>
-    <string name="default_label">Time To Rest</string>
+    <string name="default_label">Do Not Interrupt</string>
     <string name="touch_to_skip">Touch to skip</string>
     <string name="title_not_rooted">Device not rooted</string>
     <string name="message_not_rooted">Your device hasn\'t been rooted.\nScheduling Airplane mode has been disabled.</string>

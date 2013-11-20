@@ -34,7 +34,7 @@ import android.os.Parcel;
 import android.text.format.DateFormat;
 
 /**
- * The Schedules provider supplies info about Time To Rest's settings
+ * The Schedules provider supplies info about Do Not Interrupt's settings
  */
 public class Schedules {
 
