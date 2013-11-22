@@ -215,6 +215,7 @@ public class ScheduleReceiver extends BroadcastReceiver {
     }
 
 	// Show notification if the phone call has been detected
+	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
 	private void setNotification(Context context) {
 		ScrollingText = context.getString(R.string.schedule_postponed_scroll);
@@ -225,18 +226,32 @@ public class ScheduleReceiver extends BroadcastReceiver {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
         		new Intent(context, ActivateFlightMode.class), PendingIntent.FLAG_CANCEL_CURRENT);
 		
-		Notification.Builder builder = new Notification.Builder(context);
-		builder.setContentIntent(contentIntent)
-			.setSmallIcon(R.drawable.ic_launcher)
-			.setTicker(ScrollingText)
-			.setWhen(System.currentTimeMillis())
-			.setAutoCancel(true)
-			.setOnlyAlertOnce(true)
-			.setDefaults(Notification.DEFAULT_LIGHTS)
-			.setContentTitle(context.getText(R.string.app_name))
-			.setContentText(NotificationText);
-		Notification notification = builder.build();
-		 
-		 mNotificationManager.notify(NOTIFICATION_ID, notification);
+		Notification notification;
+		
+		if(android.os.Build.VERSION.SDK_INT >= 11) {
+			Notification.Builder builder = new Notification.Builder(context);
+			builder.setContentIntent(contentIntent)
+				.setSmallIcon(R.drawable.ic_launcher)
+				.setTicker(ScrollingText)
+				.setWhen(System.currentTimeMillis())
+				.setAutoCancel(true)
+				.setOnlyAlertOnce(true)
+				.setDefaults(Notification.DEFAULT_LIGHTS)
+				.setContentTitle(context.getText(R.string.app_name))
+				.setContentText(NotificationText);
+			if(android.os.Build.VERSION.SDK_INT >= 16) {
+				notification = builder.build();
+			} else {
+				notification = builder.getNotification();
+			}
+		} else {
+			notification = new Notification(R.drawable.ic_launcher,
+	        		ScrollingText, System.currentTimeMillis());
+	        notification.setLatestEventInfo(context, context.getText(R.string.app_name),
+	        		NotificationText, contentIntent);
+	        notification.flags |= Notification.FLAG_ONLY_ALERT_ONCE | Notification.FLAG_AUTO_CANCEL;
+	        notification.defaults |= Notification.DEFAULT_LIGHTS;
+		}
+		mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 }

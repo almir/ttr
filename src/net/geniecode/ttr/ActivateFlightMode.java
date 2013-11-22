@@ -35,11 +35,6 @@ public class ActivateFlightMode extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// Set Holo theme for Android 3+
-		if (android.os.Build.VERSION.SDK_INT >= 11) {
-			setTheme(R.style.Theme_Holo_Transparent);
-		}
-		
 		super.onCreate(savedInstanceState);
 		showActivateDialog();
 	}
