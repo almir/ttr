@@ -1,8 +1,8 @@
-Application behaves as an airplane or silent mode scheduler,
-enabling you to schedule time when you want your device to
+Application behaves as an airplane or silent mode scheduler,&nbsp;
+enabling you to schedule time when you want your device to&nbsp;
 automatically enable or disable airplane or silent mode.<br>
-You can choose whether you want your schedule to execute only
+You can choose whether you want your schedule to execute only&nbsp;
 once or on specific days of week.<br>
 Once it's set just enable it and let the application do its thing.<br><br>
-This application has been opensourced and is licensed under the Apache License,
-Version 2.0.
+This application has been opensourced and is licensed under the&nbsp;
+Apache License, Version 2.0.
