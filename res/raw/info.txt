@@ -1,5 +1,5 @@
 <h1>Do Not Interrupt</h1>
 <h3>Version 2.1</h3>
-Copyright© 2013<br>
+Copyright© 2013-2014<br>
 GenieCode<br>
 <b>www.geniecode.net</b>
