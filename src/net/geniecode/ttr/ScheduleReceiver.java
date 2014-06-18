@@ -156,7 +156,8 @@ public class ScheduleReceiver extends BroadcastReceiver {
 			}
 			// Check whether there are ongoing phone calls, and if so
 			// show notification instead of just enabling the flight mode
-			else if (mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE) {
+			else if ((schedule.aponoff) && (!isEnabled) && (schedule.mode.equals("1")) &&
+					(mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE)) {
 				setNotification(context);
 			}
 		// Execute for devices with Android 4.2	or higher
@@ -181,7 +182,8 @@ public class ScheduleReceiver extends BroadcastReceiver {
 				ScheduleIntentService.launchService(context);
 				ScheduleWakeLock.releaseCpuLock();
 			}
-			else if (mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE) {
+			else if ((schedule.aponoff) && (result.equals("0")) && (schedule.mode.equals("1")) &&
+					(mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE)) {
 				setNotification(context);
 			}
 		}
