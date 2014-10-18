@@ -57,6 +57,7 @@ public class ActivateFlightMode extends Activity {
 			@Override
 			public void onClick(DialogInterface d, int w) {
 				activateAPMode();
+				finish();
 			}
 		})
 		.setNegativeButton(R.string.no,
