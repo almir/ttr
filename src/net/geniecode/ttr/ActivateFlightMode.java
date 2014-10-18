@@ -16,6 +16,10 @@
 
 package net.geniecode.ttr;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -25,6 +29,10 @@ import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
+
+import com.stericson.RootTools.RootTools;
+import com.stericson.RootTools.exceptions.RootDeniedException;
+import com.stericson.RootTools.execution.CommandCapture;
 
 public class ActivateFlightMode extends Activity {
 	
@@ -60,6 +68,7 @@ public class ActivateFlightMode extends Activity {
 		}).show();
  	}
 
+	@SuppressLint("NewApi")
 	@SuppressWarnings("deprecation")
 	protected void activateAPMode() {
 		if (android.os.Build.VERSION.SDK_INT < 17) {
@@ -96,9 +105,41 @@ public class ActivateFlightMode extends Activity {
 			relintent.putExtra("state", !isEnabled);
 			sendBroadcast(relintent);
 		} else {
-			// Launch service to enable flight mode on Android 4.2
-			// and newer devices
-			ScheduleIntentService.launchService(getBaseContext());
+			// Enable flight mode on Android 4.2 and newer devices
+			String result = Settings.Global.getString(getContentResolver(),
+					Settings.Global.AIRPLANE_MODE_ON);
+
+			StringBuilder mEnableCommand = new StringBuilder()
+					.append("settings put global airplane_mode_on ");
+
+			StringBuilder mBroadcastCommand = new StringBuilder()
+					.append("am broadcast -a android.intent.action.AIRPLANE_MODE --ez state ");
+
+			if (result.equals("0")) {
+				CommandCapture command = new CommandCapture(0,
+						mEnableCommand + "1", mBroadcastCommand + "true");
+				try {
+					RootTools.getShell(true).add(command);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (TimeoutException e) {
+					e.printStackTrace();
+				} catch (RootDeniedException e) {
+					e.printStackTrace();
+				}
+			} else {
+				CommandCapture command = new CommandCapture(0,
+						mEnableCommand + "0", mBroadcastCommand + "false");
+				try {
+					RootTools.getShell(true).add(command);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (TimeoutException e) {
+					e.printStackTrace();
+				} catch (RootDeniedException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }

@@ -21,21 +21,15 @@ import java.util.concurrent.TimeoutException;
 
 import android.annotation.SuppressLint;
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
+import android.support.v4.content.WakefulBroadcastReceiver;
 
 import com.stericson.RootTools.RootTools;
 import com.stericson.RootTools.exceptions.RootDeniedException;
 import com.stericson.RootTools.execution.CommandCapture;
 
 public class ScheduleIntentService extends IntentService {
-
-	public static void launchService(Context context) {
-		if (context == null)
-			return;
-		context.startService(new Intent(context, ScheduleIntentService.class));
-	}
 
 	public ScheduleIntentService() {
 		super("ScheduleIntentService");
@@ -79,5 +73,8 @@ public class ScheduleIntentService extends IntentService {
 				e.printStackTrace();
 			}
 		}
+		
+		// Release the wake lock provided by the WakefulBroadcastReceiver
+		WakefulBroadcastReceiver.completeWakefulIntent(intent);
 	}
 }

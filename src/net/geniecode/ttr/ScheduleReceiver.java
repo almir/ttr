@@ -20,7 +20,6 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,9 +27,10 @@ import android.media.AudioManager;
 import android.net.wifi.WifiManager;
 import android.os.Parcel;
 import android.provider.Settings;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 
-public class ScheduleReceiver extends BroadcastReceiver {
+public class ScheduleReceiver extends WakefulBroadcastReceiver {
 
 	public static final String PREFS_NAME = "TTRPrefs";
 	public static final String WIFI_STATE = "WiFiState";
@@ -169,18 +169,14 @@ public class ScheduleReceiver extends BroadcastReceiver {
 			
 			if ((schedule.aponoff) && (result.equals("0")) && (schedule.mode.equals("1")) &&
 					(mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_IDLE)) {
-				// Acquire full device wake (needed for the phone state to be refreshed
-				// correctly) and enable flight mode
-				ScheduleWakeLock.acquireCpuWakeLock(context);
-				ScheduleIntentService.launchService(context);
-				ScheduleWakeLock.releaseCpuLock();
+				// Keep the device awake while enabling flight mode
+				Intent service = new Intent(context, ScheduleIntentService.class);
+				startWakefulService(context, service);
 			}
 			else if ((!schedule.aponoff) && (result.equals("1")) && (schedule.mode.equals("1"))) {
-				// Acquire full device wake (needed for the phone state to be refreshed
-				// correctly) and disable flight mode
-				ScheduleWakeLock.acquireCpuWakeLock(context);
-				ScheduleIntentService.launchService(context);
-				ScheduleWakeLock.releaseCpuLock();
+				// Keep the device awake while enabling flight mode
+				Intent service = new Intent(context, ScheduleIntentService.class);
+				startWakefulService(context, service);
 			}
 			else if ((schedule.aponoff) && (result.equals("0")) && (schedule.mode.equals("1")) &&
 					(mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_IDLE)) {
