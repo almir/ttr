@@ -25,6 +25,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -44,10 +45,14 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.stericson.RootTools.RootTools;
+
 public class MainActivity extends Activity implements OnItemClickListener {
 
 	// Set constants for SharedPreferences
 	public static final String PREFS_NAME = "TTRPrefs";
+	public static final String FIRSTRUN = "FirstRun";
+	public static final String ROOTED = "DeviceRooted";
 	public static final String SCHEDULES = "Schedules";
 
 	private LayoutInflater mFactory;
@@ -58,11 +63,65 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Check whether the Android 4.2 device is rooted or not
+		if (android.os.Build.VERSION.SDK_INT >= 17) {
+			// Get shared preferences
+			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+			// Get shared preferences editor for writing later
+			SharedPreferences.Editor editor = settings.edit();
+			
+			// Chech whether this is our first run
+			Boolean mFirstRun = settings.getBoolean(FIRSTRUN, true);
+			if(mFirstRun) {
+				if (!RootTools.isAccessGiven()) {
+					// Write to shared peferences
+					editor.putBoolean(FIRSTRUN, false);
+					editor.putBoolean(ROOTED, false);
+					editor.commit();
+					
+					// Show the dialog
+					showNoRootDialog();
+				} else {
+					// Write to shared peferences
+					editor.putBoolean(FIRSTRUN, false);
+					editor.putBoolean(ROOTED, true);
+					editor.commit();
+				}
+			} else {
+				// We always check for root, write true if the device has been
+				// rooted in the meantime, or false if it has lost root somehow
+				if (RootTools.isAccessGiven()) {
+					editor.putBoolean(ROOTED, true);
+					editor.commit();
+				} else {
+					editor.putBoolean(ROOTED, false);
+					editor.commit();
+				}
+			}
+		}
 
 		mFactory = LayoutInflater.from(this);
 		mCursor = Schedules.getSchedulesCursor(getContentResolver());
 
 		updateLayout();
+	}
+	
+	// Show the message stating that the device hasn't been rooted
+	// and that the airplane mode has been disabled
+	private void showNoRootDialog() {
+		new AlertDialog.Builder(this)
+				.setTitle(getString(R.string.title_not_rooted))
+				.setMessage(getString(R.string.message_not_rooted))
+				.setCancelable(false)
+				.setNeutralButton(android.R.string.ok,
+						new AlertDialog.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface d, int w) {
+								// Dismiss the dialog
+								d.dismiss();
+							}
+						}).show();
 	}
 
 	private void updateSchedule(boolean enabled, Schedule schedule) {
@@ -261,6 +320,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		}
 	}
 
+	@SuppressLint("InflateParams")
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View view,
 			ContextMenuInfo menuInfo) {

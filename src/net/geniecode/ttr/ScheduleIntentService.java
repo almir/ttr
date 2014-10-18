@@ -16,11 +16,18 @@
 
 package net.geniecode.ttr;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
 import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
+
+import com.stericson.RootTools.RootTools;
+import com.stericson.RootTools.exceptions.RootDeniedException;
+import com.stericson.RootTools.execution.CommandCapture;
 
 public class ScheduleIntentService extends IntentService {
 
@@ -48,11 +55,29 @@ public class ScheduleIntentService extends IntentService {
 				.append("am broadcast -a android.intent.action.AIRPLANE_MODE --ez state ");
 
 		if (result.equals("0")) {
-			CommonServices.RunAsRoot(mEnableCommand + "1", true);
-			CommonServices.RunAsRoot(mBroadcastCommand + "true", true);
+			CommandCapture command = new CommandCapture(0,
+					mEnableCommand + "1", mBroadcastCommand + "true");
+			try {
+				RootTools.getShell(true).add(command);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (TimeoutException e) {
+				e.printStackTrace();
+			} catch (RootDeniedException e) {
+				e.printStackTrace();
+			}
 		} else {
-			CommonServices.RunAsRoot(mEnableCommand + "0", true);
-			CommonServices.RunAsRoot(mBroadcastCommand + "false", true);
+			CommandCapture command = new CommandCapture(0,
+					mEnableCommand + "0", mBroadcastCommand + "false");
+			try {
+				RootTools.getShell(true).add(command);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (TimeoutException e) {
+				e.printStackTrace();
+			} catch (RootDeniedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
