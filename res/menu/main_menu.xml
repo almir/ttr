@@ -18,6 +18,10 @@
         android:title="@string/add_schedule"
         android:icon="@drawable/ic_menu_add"
         android:showAsAction="never"/>
+    <item android:id="@+id/menu_rateapp"
+        android:title="@string/rateapp"
+        android:icon="@android:drawable/star_off"
+        android:showAsAction="never"/>
     <item android:id="@+id/menu_about"
         android:title="@string/about"
         android:icon="@android:drawable/ic_menu_info_details"

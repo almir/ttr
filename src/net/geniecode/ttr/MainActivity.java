@@ -22,12 +22,16 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -44,6 +48,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.stericson.RootTools.RootTools;
 
@@ -123,7 +128,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 							}
 						}).show();
 	}
-
+	
 	private void updateSchedule(boolean enabled, Schedule schedule) {
 		Schedules.enableSchedule(this, schedule.id, enabled);
 		if (enabled) {
@@ -358,14 +363,17 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case R.id.menu_add_schedule:
+			addNewSchedule();
+			return true;
+		case R.id.menu_rateapp:
+			rateApp();
+			return true;
 		case R.id.menu_about:
 			AboutDialog about = new AboutDialog(this);
 			about.setTitle(getString(R.string.about));
 			about.show();
 			break;
-		case R.id.menu_add_schedule:
-			addNewSchedule();
-			return true;
 		case android.R.id.home:
 			finish();
 			return true;
@@ -378,6 +386,12 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main_menu, menu);
+		Resources res = getResources();
+		MenuItem mRateMenuItem = menu.findItem(R.id.menu_rateapp);
+		String mRateMenuItemTitle = String.format(res.getString(R.string.rateapp),
+				res.getString(R.string.app_name));
+		CharSequence styledTitle = Html.fromHtml(mRateMenuItemTitle);
+		mRateMenuItem.setTitle(styledTitle);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -389,5 +403,29 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		Intent intent = new Intent(this, SetSchedule.class);
 		intent.putExtra(Schedules.SCHEDULE_INTENT_EXTRA, schedule);
 		startActivity(intent);
+	}
+	
+	// Take user to this application's page on Google Play
+	private void rateApp() {
+		Intent intent = new Intent(Intent.ACTION_VIEW);
+		// Try opening Google Play Store first
+		intent.setData(Uri.parse("market://details?id=net.geniecode.ttr"));
+		if (!tryStartActivity(intent)) {
+			// It looks like that Google Play Store hasn't been installed, try web browser
+			intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=net.geniecode.ttr"));
+			if (!tryStartActivity(intent)) {
+				// If none of the above works notify the user
+				Toast.makeText(this, getString(R.string.no_google_play), Toast.LENGTH_SHORT).show();
+			}
+		}
+	}
+	
+	private boolean tryStartActivity(Intent intentToStart) {
+		try {
+			startActivity(intentToStart);
+			return true;
+		} catch (ActivityNotFoundException e) {
+			return false;
+		}
 	}
 }

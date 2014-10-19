@@ -16,6 +16,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
            xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Do Not Interrupt</string>
+    <string name="rateapp">Rate &lt;i&gt;%1$s&lt;/i&gt;</string>
     <string name="about">About</string>
     <string name="default_label">Do Not Interrupt</string>
     <string name="title_not_rooted">Device not rooted</string>
@@ -64,4 +65,5 @@
 	<string name="schedule_postponed_notify">Schedule postponed due to detected call.</string>
 	<string name="title_activate">Activate Airplane mode</string>
 	<string name="message_activate">Activating Airplane mode has been postponed due to detected call.\nDo you want to activate it now?</string>
+	<string name="no_google_play">Unable to open Google Play Store.</string>
 </resources>
